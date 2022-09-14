@@ -1,0 +1,7 @@
+version: "3"
+
+tasks:
+  sh:
+    desc: Lints shell scripts
+    cmds:
+      - shfmt -f . | xargs shellcheck

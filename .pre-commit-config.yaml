@@ -1,0 +1,66 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 2.1.5
+    hooks:
+      - id: shellcheck
+  - repo: local
+    hooks:
+      - id: shfmt
+        name: Format Shell Scripts
+        entry: pls fmt:sh
+        files: ^.*\.sh$
+        pass_filenames: false
+        language: system
+
+      - id: cfg-scripts
+        name: Configure Scripts
+        entry: pls cfg:scripts
+        files: ^.*\.sh$
+        pass_filenames: false
+        language: system
+
+      - id: yaml-fmt
+        name: Format YAML with prettier
+        entry: pls fmt:yaml
+        files: ^.*\.(yaml|yml)$
+        pass_filenames: false
+        language: system
+
+      - id: md-fmt
+        name: Format Markdown with prettier
+        entry: pls fmt:md
+        files: ^.*\.(MD|md)$
+        pass_filenames: false
+        language: system
+
+      - id: nixpkgs-fmt
+        name: Format NIX files
+        entry: pls fmt:nix
+        files: ^.*\.nix$
+        language: system
+        pass_filenames: false
+      - id: terraform-init
+        name: Init all terraform files
+        entry: pls fmt:nix
+        files: ^.*\.tf$
+        language: system
+        pass_filenames: false
+      - id: terraform-validate
+        name: Validate all terraform files
+        entry: pls fmt:nix
+        files: ^.*\.tf$
+        language: system
+        pass_filenames: false
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.73.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_docs
+      - id: terraform_tflint
+      - id: terraform_tfsec

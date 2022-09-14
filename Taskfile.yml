@@ -1,0 +1,68 @@
+version: "3"
+
+includes:
+  lint: ./scripts/lint.yml
+  fmt: ./scripts/fmt.yml
+  ci: ./scripts/ci.yml
+
+tasks:
+  cfg:scripts:
+    run: once
+    desc: Configure Scripts to be executable
+    cmds:
+      - chmod -R +x ./scripts
+  admin:
+    desc: Become Terraform user
+    cmds:
+      - ./scripts/become_terraform_user.sh
+  update:ambassador:crd:
+    desc: Download and update ambassador CRD
+    env:
+      VERSION: "3.1.0"
+    cmds:
+      - ./scripts/download_ambassador_crd.sh
+
+  update:karpenter:crd:
+    desc: Download and update karpenter CRD
+    env:
+      VERSION: "v0.16.1"
+    cmds:
+      - ./scripts/download_karpenter_crd.sh
+
+  init:all:
+    desc: Run Terraform init on all folders
+    cmds:
+      - find . -type f -name '*.tf' -printf '%h\n' | uniq | xargs  -I {} sh -c 'echo Initializing {} ... && cd {} && terraform init'
+  validate:all:
+    desc: Run Terraform validate on all folders
+    cmds:
+      - find . -type f -name '*.tf' -printf '%h\n' | uniq | xargs  -I {} sh -c 'echo Validating {} ... && cd {} && terraform validate'
+
+  # Spacelift
+  spacelift:staging:
+    desc: Runs command in staging environment
+    cmds:
+      - spacectl stack task --id staging --tail "{{.CLI_ARGS}}"
+
+  spacelift:prod:indo:
+    desc: Runs command in production indonesia environment
+    cmds:
+      - spacectl stack task --id production-indo --tail "{{.CLI_ARGS}}"
+
+  spacelift:prod:global:
+    desc: Runs command in production global environment
+    cmds:
+      - spacectl stack task --id production-global --tail "{{.CLI_ARGS}}"
+
+  # Utility
+  lint:
+    desc: Run all linters
+    cmds:
+      - task: lint:sh
+  fmt:
+    desc: Run all formatters
+    cmds:
+      - task: fmt:sh
+      - task: fmt:md
+      - task: fmt:yaml
+      - task: fmt:nix

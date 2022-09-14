@@ -1,0 +1,3 @@
+module.yml
+**/templates/**/*.yml
+**/templates/**/*.yaml

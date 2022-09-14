@@ -1,0 +1,7 @@
+version: "3"
+
+tasks:
+  pre-commit:
+    desc: Pre-commit CI
+    cmds:
+      - nix-shell nix/shells.nix -A ci --run scripts/ci/pre-commit.sh
