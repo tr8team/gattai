@@ -1,40 +1,66 @@
-v2.7.20: &latest
-  cli:
-    command: aws
-    args:
-      {{- with .region }}
-      - --region {{ . }}
-      {{- end }}
-      {{- with .rds-cluster }}
-      - command: rds
-        args:
-          - command: describe-db-clusters
-            args:
-              - --db-cluster-identifier {{ .identifier }}
-              - --query "DBClusters[0].{{ .query }}"
-      {{- end }}
-      {{- with .rds-instance }}
-      - command: rds
-        args:
-          - command: describe-db-instances
-            args:
-              - --db-instance-identifier {{ .identifier }}
-              - --query "DBInstances[0].{{ .query }}"
-      {{- end }}
-      {{- with .elasticache-replica-grp }}
-      - command: elasticache
-        args:
-          - command: describe-replication-groups
-            args:
-              - --replication-group-id {{ .identifier }}
-              - --query "ReplicationGroups[0].{{ .query }}"
-      {{- end }}
-      {{- with .security-grp }}
-      - command: ec2
+cli:
+  sub-commands:
+    v2.7.20:rds:describe-db-clusters:
+      command: rds
+      args:
+        - command: describe-db-clusters
+          args:
+            - --db-cluster-identifier {{ .IDENTIFIER }}
+            - --query "DBClusters[0].{{ .QUERY }}"
+
+    v2.7.20:rds:describe-db-instances:
+      command: rds
+      args:
+        - command: describe-db-instances
+          args:
+            - --db-instance-identifier {{ .IDENTIFIER }}
+            - --query "DBInstances[0].{{ .QUERY }}"
+
+    v2.7.20:elasticache:describe-replication-groups:
+      command: elasticache
+      args:
+        - command: describe-replication-groups
+          args:
+            - --replication-group-id {{ .IDENTIFIER }}
+            - --query "ReplicationGroups[0].{{ .QUERY }}"
+  
+   v2.7.20:ec2:describe-security-groups:
+      command: ec2
         args:
           - command: describe-security-groups
             args:
-              - --filter Name=group-name,Values={{ .name-filter }}
-              - --query "SecurityGroups[0].{{ .query }}"
+              - --filter Name=group-name,Values={{ .FILTER }}
+              - --query "SecurityGroups[0].{{ .QUERY }}"
+
+  v2.7.20: &latest
+    command: aws
+    args:
+      {{- with Specs.region }}
+      - --region {{ . }}
       {{- end }}
-default: *latest
+      {{- with Specs.rds-cluster }}
+      - sub-command: v2.7.20:rds:describe-db-clusters
+        vars: 
+          IDENTIFIER: {{ .identifier }}
+          QUERY: {{ .query }}
+      {{- end }}
+      {{- with Specs.rds-instance }}
+      - sub-command: v2.7.20:rds:describe-db-instances
+        vars: 
+          IDENTIFIER: {{ .identifier }}
+          QUERY: {{ .query }}
+      {{- end }}
+      {{- with Specs.elasticache-replica-grp }}
+      - sub-command: v2.7.20:elasticache:describe-replication-groups
+        vars: 
+          IDENTIFIER: {{ .identifier }}
+          QUERY: {{ .query }}
+      {{- end }}
+      {{- with Specs.security-grp }}
+      - sub-command: v2.7.20:ec2:describe-security-groups
+        vars: 
+          FILTER: {{ .name-filter }}
+          QUERY: {{ .query }}
+      {{- end }}
+  
+  default: *latest
