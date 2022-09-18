@@ -2,25 +2,39 @@ v2.7.20: &latest
   cli:
     command: aws
     args:
-      {{- if .Specs.region }}
-      - --region
-      - {{- .Specs.region }}
+      {{- with .region }}
+      - --region {{ . }}
       {{- end }}
-      {{- with .Specs.rds }}
-      - rds
-      {{- with .db-cluster }}
-      - describe-db-clusters
-      - --db-cluster-identifier
-      - {{- .identifier }}
-      - --query
-      - "DBClusters[0].{{ .query }}"
+      {{- with .rds-cluster }}
+      - command: rds
+        args:
+          - command: describe-db-clusters
+            args:
+              - --db-cluster-identifier {{ .identifier }}
+              - --query "DBClusters[0].{{ .query }}"
       {{- end }}
-      {{- with .db-instance }}
-      - describe-db-instances
-      - --db-instance-identifier
-      - {{- .identifier }}
-      - --query
-      - "DBInstances[0].{{ .query }}"
+      {{- with .rds-instance }}
+      - command: rds
+        args:
+          - command: describe-db-instances
+            args:
+              - --db-instance-identifier {{ .identifier }}
+              - --query "DBInstances[0].{{ .query }}"
       {{- end }}
+      {{- with .elasticache-replica-grp }}
+      - command: elasticache
+        args:
+          - command: describe-replication-groups
+            args:
+              - --replication-group-id {{ .identifier }}
+              - --query "ReplicationGroups[0].{{ .query }}"
+      {{- end }}
+      {{- with .security-grp }}
+      - command: ec2
+        args:
+          - command: describe-security-groups
+            args:
+              - --filter Name=group-name,Values={{ .name-filter }}
+              - --query "SecurityGroups[0].{{ .query }}"
       {{- end }}
 default: *latest
