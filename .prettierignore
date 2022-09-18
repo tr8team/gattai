@@ -1,3 +1,5 @@
 module.yml
 **/templates/**/*.yml
 **/templates/**/*.yaml
+source/**/*.yml
+source/**/*.yaml

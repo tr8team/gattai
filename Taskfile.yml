@@ -15,19 +15,6 @@ tasks:
     desc: Become Terraform user
     cmds:
       - ./scripts/become_terraform_user.sh
-  update:ambassador:crd:
-    desc: Download and update ambassador CRD
-    env:
-      VERSION: "3.1.0"
-    cmds:
-      - ./scripts/download_ambassador_crd.sh
-
-  update:karpenter:crd:
-    desc: Download and update karpenter CRD
-    env:
-      VERSION: "v0.16.1"
-    cmds:
-      - ./scripts/download_karpenter_crd.sh
 
   init:all:
     desc: Run Terraform init on all folders
@@ -37,22 +24,6 @@ tasks:
     desc: Run Terraform validate on all folders
     cmds:
       - find . -type f -name '*.tf' -printf '%h\n' | uniq | xargs  -I {} sh -c 'echo Validating {} ... && cd {} && terraform validate'
-
-  # Spacelift
-  spacelift:staging:
-    desc: Runs command in staging environment
-    cmds:
-      - spacectl stack task --id staging --tail "{{.CLI_ARGS}}"
-
-  spacelift:prod:indo:
-    desc: Runs command in production indonesia environment
-    cmds:
-      - spacectl stack task --id production-indo --tail "{{.CLI_ARGS}}"
-
-  spacelift:prod:global:
-    desc: Runs command in production global environment
-    cmds:
-      - spacectl stack task --id production-global --tail "{{.CLI_ARGS}}"
 
   # Utility
   lint:

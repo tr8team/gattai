@@ -1,0 +1,26 @@
+v2.7.20: &latest
+  cli:
+    command: aws
+    args:
+      {{- if .Specs.region }}
+      - --region
+      - {{- .Specs.region }}
+      {{- end }}
+      {{- with .Specs.rds }}
+      - rds
+      {{- with .db-cluster }}
+      - describe-db-clusters
+      - --db-cluster-identifier
+      - {{- .identifier }}
+      - --query
+      - "DBClusters[0].{{ .query }}"
+      {{- end }}
+      {{- with .db-instance }}
+      - describe-db-instances
+      - --db-instance-identifier
+      - {{- .identifier }}
+      - --query
+      - "DBInstances[0].{{ .query }}"
+      {{- end }}
+      {{- end }}
+default: *latest
