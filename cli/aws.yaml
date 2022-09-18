@@ -1,4 +1,6 @@
-cli:
+apiVersion: v1
+type: CommandLineInterface
+template:
   sub-commands:
     v2.7.20:rds:describe-db-clusters:
       command: rds
@@ -35,28 +37,28 @@ cli:
   v2.7.20: &latest
     command: aws
     args:
-      {{- with Specs.region }}
+      {{- with .Spec.region }}
       - --region {{ . }}
       {{- end }}
-      {{- with Specs.rds-cluster }}
+      {{- with .Spec.rds-cluster }}
       - sub-command: v2.7.20:rds:describe-db-clusters
         vars: 
           IDENTIFIER: {{ .identifier }}
           QUERY: {{ .query }}
       {{- end }}
-      {{- with Specs.rds-instance }}
+      {{- with .Spec.rds-instance }}
       - sub-command: v2.7.20:rds:describe-db-instances
         vars: 
           IDENTIFIER: {{ .identifier }}
           QUERY: {{ .query }}
       {{- end }}
-      {{- with Specs.elasticache-replica-grp }}
+      {{- with .Spec.elasticache-replica-grp }}
       - sub-command: v2.7.20:elasticache:describe-replication-groups
         vars: 
           IDENTIFIER: {{ .identifier }}
           QUERY: {{ .query }}
       {{- end }}
-      {{- with Specs.security-grp }}
+      {{- with .Spec.security-grp }}
       - sub-command: v2.7.20:ec2:describe-security-groups
         vars: 
           FILTER: {{ .name-filter }}
