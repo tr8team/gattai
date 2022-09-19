@@ -1,0 +1,11 @@
+describe-security-groups:v2:
+  command: describe-security-groups
+  vars:
+    filters: { { .filters } }
+    query: { { .query } }
+
+describe-security-groups:v3:
+  include-command: ./desc_sec_grps_v1.yaml
+  vars:
+    filters: { { .filters } }
+    query: { { .query } }

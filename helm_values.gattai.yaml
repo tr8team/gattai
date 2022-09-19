@@ -1,0 +1,62 @@
+version: v1
+
+targets:
+  STAGING_MYSQL_URL:
+    source: aws_query_rds_cluster
+    input:
+      region: ap-southeast-1
+      identifier: "staging-systems-engineering-transactional-database"
+      query: "Endpoint"
+  STAGING_REDIS_URL:
+    source: aws_query_elasticache_replica_grp:v2.7.20
+    input:
+      region: ap-southeast-1
+      identifier: "staging-systems-engineering-cache"
+      query: "ConfigurationEndpoint.Address"
+  CLUSTER_SECGROUP_ID:
+    source: aws_query_security_grp:v2.7.20
+    input:
+      region: ap-southeast-1
+      filters:
+        group-name: "*staging-main-eks_cluster*"
+      query: "GroupId"
+  NGINX_POD_SECGROUP_ID:
+    source: aws_query_security_grp:v2.7.20
+    input:
+      region: ap-southeast-1
+      filters:
+        group-name: "*nginx-pod*"
+      query: "GroupId"
+  PHPFPM_POD_SECGROUP_ID:
+    source: aws_query_security_grp:v2.7.20
+    input:
+      region: ap-southeast-1
+      filters:
+        group-name: "*php-pod*"
+      query: "GroupId"
+
+outputs:
+  default:
+    name: values.yaml
+    output: |
+      nginx:
+        securityGroupPolicy:
+          groupIds:
+            - {{ source .NGINX_POD_SECGROUP_ID }}
+            - {{ source .CLUSTER_SECGROUP_ID }}
+      phpfpm:
+        envFile:
+          name: envfile
+          key: .env.remote-testing
+        securityGroupPolicy:
+          groupIds:
+            - {{ source .PHPFPM_POD_SECGROUP_ID }}
+            - {{ source .CLUSTER_SECGROUP_ID }}
+      mysql:
+        enabled: false
+        nameOverride: "transactional-database"
+        externalName: {{ source .STAGING_MYSQL_URL }}
+      redis:
+        enabled: false
+        nameOverride: "cache"
+        externalName: {{ source .STAGING_REDIS_URL }}

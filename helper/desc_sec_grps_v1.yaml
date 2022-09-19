@@ -1,0 +1,8 @@
+command: describe-security-groups
+args:
+  {{- range $key, $val := .filters }}
+  - --filter Name={{ $key }},Values={{ $val }}
+  {{- end }}
+  {{- with .query }}
+  - --query "SecurityGroups[0].{{ .query }}"
+  {{- end }}

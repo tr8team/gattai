@@ -154,7 +154,7 @@ name='nix-shell'
 export name
 nativeBuildInputs=''
 export nativeBuildInputs
-out='/Users/yaowei.tan/Desktop/Projects/dot-secret/outputs/out'
+out='/Users/yaowei.tan/Desktop/Projects/gattai/outputs/out'
 export out
 outputBin='out'
 outputDev='out'
@@ -183,7 +183,7 @@ declare -a postUnpackHooks=('_updateSourceDateEpochFromSourceRoot' )
 declare -a preConfigureHooks=('_multioutConfig' 'forceLinkCoreFoundationFramework' )
 preConfigurePhases=' updateAutotoolsGnuConfigScriptsPhase'
 declare -a preFixupHooks=('_moveToShare' '_multioutDocs' '_multioutDevs' )
-prefix='/Users/yaowei.tan/Desktop/Projects/dot-secret/outputs/out'
+prefix='/Users/yaowei.tan/Desktop/Projects/gattai/outputs/out'
 declare -a propagatedBuildDepFiles=('propagated-build-build-deps' 'propagated-native-build-inputs' 'propagated-build-target-deps' )
 propagatedBuildInputs=''
 export propagatedBuildInputs

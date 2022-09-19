@@ -1,0 +1,29 @@
+apiVersion: v1
+type: CommandLineInterface
+spec:
+  environment:
+    kind: shell
+  sub-commands:
+    include: ../helper/desc_sec_grps.yaml
+    describe-security-groups:v1:
+      include-command: ../helper/desc_sec_grps_v1.yaml
+      vars:
+        filters: {{ .filters }}
+        query: {{ .query }}
+  execute:
+    v2.7.20: &latest
+      command: aws
+      args:
+        {{- with .Input }}
+        {{- with .region }}
+        - --region {{ . }}
+        {{- end }}
+        - command: ec2
+          args:
+            - include-command: ../helper/desc_sec_grps_v1.yaml
+              vars:
+                filters: {{ .filters }}
+                query: {{ .query }}
+        {{- end }}
+
+    default: *latest
