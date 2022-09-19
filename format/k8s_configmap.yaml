@@ -13,8 +13,14 @@ spec:
               {{- with .Output }}
               args:
                 - {{ .name }}
-                {{- range $key, $val := .key-value-map }}
+                {{- range $key, $val := .from-literals }}
                 - --from-literal={{ $key }}={{ $val }}
+                {{- end }}
+                {{- with .from-file }}
+                - --from-file={{ . }}
+                {{- end }}
+                {{- with .from-env-file }}
+                - --from-env-file={{ . }}
                 {{- end }}
                 - -o yaml
               {{- end }}
