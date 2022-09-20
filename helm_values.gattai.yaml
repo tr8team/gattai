@@ -37,26 +37,28 @@ targets:
 
 outputs:
   default:
-    name: values.yaml
-    output: |
-      nginx:
-        securityGroupPolicy:
-          groupIds:
-            - {{ source .NGINX_POD_SECGROUP_ID }}
-            - {{ source .CLUSTER_SECGROUP_ID }}
-      phpfpm:
-        envFile:
-          name: envfile
-          key: .env.remote-testing
-        securityGroupPolicy:
-          groupIds:
-            - {{ source .PHPFPM_POD_SECGROUP_ID }}
-            - {{ source .CLUSTER_SECGROUP_ID }}
-      mysql:
-        enabled: false
-        nameOverride: "transactional-database"
-        externalName: {{ source .STAGING_MYSQL_URL }}
-      redis:
-        enabled: false
-        nameOverride: "cache"
-        externalName: {{ source .STAGING_REDIS_URL }}
+    format: default
+    output:
+      filename: values.yaml
+      content: |
+        nginx:
+          securityGroupPolicy:
+            groupIds:
+              - {{ fetch Targets.NGINX_POD_SECGROUP_ID }}
+              - {{ fetch Targets.CLUSTER_SECGROUP_ID }}
+        phpfpm:
+          envFile:
+            name: envfile
+            key: .env.remote-testing
+          securityGroupPolicy:
+            groupIds:
+              - {{ fetch Targets.PHPFPM_POD_SECGROUP_ID }}
+              - {{ fetch Targets.CLUSTER_SECGROUP_ID }}
+        mysql:
+          enabled: false
+          nameOverride: "transactional-database"
+          externalName: {{ fetch Targets.STAGING_MYSQL_URL }}
+        redis:
+          enabled: false
+          nameOverride: "cache"
+          externalName: {{ fetch Targets.STAGING_REDIS_URL }}

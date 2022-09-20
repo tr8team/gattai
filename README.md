@@ -1,5 +1,9 @@
 # gattai
 
-gattai create default ./env.gattai.yaml
+```console
+foo@bar:~$ gattai print default ./env.gattai.yaml
 
-gattai create remote-dev ./env.gattai.yaml --output k8s_secret:v1.23.5
+foo@bar:~$ gattai create local-dev ./env.gattai.yaml
+
+foo@bar:~$ gattai create remote-dev ./env.gattai.yaml --destination ./remote-dev-values.yaml
+```
