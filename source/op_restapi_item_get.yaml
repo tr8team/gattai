@@ -1,0 +1,9 @@
+apiVersion: v1
+type: RestAPI
+spec:
+  execute:
+    default:
+      url: https://http://a5d55cc0f009947a8acd17b89660e57c-633595807.ap-southeast-1.elb.amazonaws.com:5012/api
+      method: GET
+      headers:
+      body:
