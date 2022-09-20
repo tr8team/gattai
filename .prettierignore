@@ -1,9 +1,9 @@
 module.yml
 **/templates/**/*.yml
 **/templates/**/*.yaml
-source/**/*.yml
-source/**/*.yaml
-helper/**/*.yml
-helper/**/*.yaml
-format/**/*.yml
-format/**/*.yaml
+sources/**/*.yml
+sources/**/*.yaml
+helpers/**/*.yml
+helpers/**/*.yaml
+formats/**/*.yml
+formats/**/*.yaml
