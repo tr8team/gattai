@@ -1,0 +1,27 @@
+version: v1
+type: CommandLineInterface
+spec:
+  params:
+    filename:
+      desc: The filename to save the content into
+      type: string
+    content:
+      desc: The content to be save if any
+      type: string
+  return: {{ stdout }}
+  cmds:
+    - cmd:
+        {{- if .Params.content }}
+        {{- with .Params }}
+        - echo {{ .content }} > {{ temp_folder .filename  }}
+        {{- end }}
+        {{- end }}
+    - operator: and
+    - cmd:
+        {{- with .Params }}
+        {{- if .content }}
+        - echo {{ temp_folder .filename }};
+        {{- else }}
+        - echo {{ .filename }};
+        {{- end }}
+        {{- end }}

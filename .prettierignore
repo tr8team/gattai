@@ -1,9 +1,7 @@
 module.yml
 **/templates/**/*.yml
 **/templates/**/*.yaml
-sources/**/*.yml
-sources/**/*.yaml
+local_libs/**/*.yml
+local_libs/**/*.yaml
 helpers/**/*.yml
 helpers/**/*.yaml
-formats/**/*.yml
-formats/**/*.yaml

@@ -1,29 +1,29 @@
-apiVersion: v1
+version: v1
 type: CommandLineInterface
 spec:
   environment:
-    kind: docker
+    kind: shell
   sub-commands:
-    describe-replication-groups:v1:
-      command: describe-replication-groups
+    describe-db-instances:v1:
+      command: describe-db-instances
       args:
-        {{ with .identifier }}
-        - --replication-group-id {{ . }}
+        {{- when .identifier }}
+        - --db-instance-identifier {{ . }}
         {{- end }}
-        {{ with .query }}
-        - --query "ReplicationGroups[0].{{ .query }}"
+        {{- when .query }}
+        - --query "DBInstances[0].{{ . }}"
         {{- end }}
   execute:
     v2.7.20: &latest
       command: aws
       args:
-        {{- with .Input }}
+        {{- with .Params }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}
-        - command: elasticache
+        - command: rds
           args:
-            - sub-command: describe-replication-groups:v1
+            - sub-command: describe-db-instances:v1
               vars:
                 identifier: {{ .identifier }}
                 query: {{ .query }}

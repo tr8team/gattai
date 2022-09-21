@@ -1,8 +1,9 @@
-apiVersion: v1
+version: v1
 type: CommandLineInterface
 spec:
   environment:
     kind: shell
+  nix: aws-cli
   sub-commands:
     include: ../helper/desc_sec_grps.yaml
     describe-security-groups:v1:
@@ -14,7 +15,7 @@ spec:
     v2.7.20: &latest
       command: aws
       args:
-        {{- with .Input }}
+        {{- with .Params }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}
