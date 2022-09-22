@@ -8,20 +8,11 @@ spec:
     content:
       desc: The content to be save if any
       type: string
-  return: {{ stdout }}
+  return: {{- if .content }} {{ temp_folder .filename }} {{- else }} {{ .filename }} {{- end }}
   cmds:
     - cmd:
         {{- if .Params.content }}
         {{- with .Params }}
         - echo {{ .content }} > {{ temp_folder .filename  }}
-        {{- end }}
-        {{- end }}
-    - operator: and
-    - cmd:
-        {{- with .Params }}
-        {{- if .content }}
-        - echo {{ temp_folder .filename }};
-        {{- else }}
-        - echo {{ .filename }};
         {{- end }}
         {{- end }}
