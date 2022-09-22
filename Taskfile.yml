@@ -26,15 +26,10 @@ tasks:
       - find . -type f -name '*.tf' -printf '%h\n' | uniq | xargs  -I {} sh -c 'echo Validating {} ... && cd {} && terraform validate'
 
   #Build
-  install:app:
-    desc: Build and install the go program
-    cmds:
-      - go install .
-
   run:app:
     desc: Run the go program
     cmds:
-      - go run .
+      - go run . {{ .CLI_ARGS }}
 
   # Utility
   lint:
