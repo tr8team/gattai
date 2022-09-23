@@ -7,12 +7,12 @@ params:
   content:
     desc: The content to be save if any
     type: string
-return: {{- if .content }} {{ temp_folder .filename }} {{- else }} {{ .filename }} {{- end }}
+return: {{- if .Args.content }} {{ temp_folder .Args.filename }} {{- else }} {{ .Args.filename }} {{- end }}
 spec:
   cmds:
     - cmd:
-        {{- if .Params.content }}
-        {{- with .Params }}
+        {{- if .Args.content }}
+        {{- with .Args }}
         - echo {{ .content }} > {{ temp_folder .filename  }}
         {{- end }}
         {{- end }}

@@ -32,7 +32,7 @@ type CLIFile struct {
 	Type string `yaml:"type"`
 	Params map[string]interface{} `yaml:"params"`
 	Return string `yaml:"return"`
-	Spec map[string][](map[string]string) `yaml:"spec"`
+	Spec map[string][](map[string][]string) `yaml:"spec"`
 }
 
 func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(target Target) string {
@@ -81,13 +81,9 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			if err != nil {
 				log.Fatalf("Unmarshal: %v", err)
 			}
-			result = fmt.Sprintf("%v",cli_file.Spec["cmds"])
-			//for _, blk := range cli_file.Spec["cmds"] {
-			//	if cmd, ok := blk["cmd"]; ok {
-			//		result = cmd //strings.Join(cmd," ")
-			//	}
-			//}
-			// Print out the template to std
+			for _, blk := range cli_file.Spec["cmds"] {
+				result = strings.Join(blk["cmd"]," ")
+			}
 		}
 		return result
 	}
