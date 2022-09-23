@@ -32,35 +32,48 @@ type CLIFile struct {
 	Type string `yaml:"type"`
 	Params map[string]interface{} `yaml:"params"`
 	Return string `yaml:"return"`
-	Specs map[string][]map[string]string `yaml:"specs"`
+	Spec map[string][](map[string]string) `yaml:"spec"`
 }
 
-func tpl_fetch(tempFolder string, lookUpRepoPath map[string]string) func(target Target) string {
+func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(target Target) string {
 	lookUpReturn := make(map[string]string)
 	return func(target Target) string {
-		yamlKey, err := yaml.Marshal(target)
+		yamlTarget, err := yaml.Marshal(target)
 		if err != nil {
 			panic(err)
 		}
-
-		result, ok := lookUpReturn[string(yamlKey)]
+		result, ok := lookUpReturn[string(yamlTarget)]
 		if !ok {
-			//result = target.Exec;
-			tokens := strings.Split(target.Exec, "/")
+			tmpl, err := template.New("").Funcs(template.FuncMap{
+				"fetch": tpl_fetch(gattai_file,lookUpRepoPath),
+			}).Parse(string(yamlTarget))
+			if err != nil {
+				panic(err)
+			}
+			var buf bytes.Buffer
+			if err := tmpl.Execute(&buf, gattai_file.Targets); err != nil {
+				panic(err)
+			}
+			var updated_target Target
+			err = yaml.Unmarshal(buf.Bytes(), &updated_target)
+			if err != nil {
+				log.Fatalf("Unmarshal: %v", err)
+			}
+			tokens := strings.Split(updated_target.Exec, "/")
 			path, ok := lookUpRepoPath[tokens[0]]
 			if !ok {
 
 			}
 			tmpl_filename := strings.Join(tokens[1:],"/") + ".yaml"
 			tmpl_filepath := path + "/" + tmpl_filename
-			tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
-				"temp_folder": tpl_temp_folder(tempFolder),
+			tmpl, err = template.New(tmpl_filename).Funcs(template.FuncMap{
+				"temp_folder": tpl_temp_folder(gattai_file.TempFolder),
 			}).ParseFiles(tmpl_filepath)
 			if err != nil {
 				panic(err)
 			}
-			var buf bytes.Buffer
-			if err := tmpl.Execute(&buf, target); err != nil {
+			//var buf bytes.Buffer
+			if err := tmpl.Execute(&buf, updated_target); err != nil {
 				panic(err)
 			}
 			var cli_file CLIFile;
@@ -68,17 +81,12 @@ func tpl_fetch(tempFolder string, lookUpRepoPath map[string]string) func(target 
 			if err != nil {
 				log.Fatalf("Unmarshal: %v", err)
 			}
-			result = cli_file.Type
-			//switch v := target.Args.(type) {
-			//case map[interface {}]interface{}:
-			//	if exec, ok := v["exec"]; ok {
-			//		result = string(exec)
+			result = fmt.Sprintf("%v",cli_file.Spec["cmds"])
+			//for _, blk := range cli_file.Spec["cmds"] {
+			//	if cmd, ok := blk["cmd"]; ok {
+			//		result = cmd //strings.Join(cmd," ")
 			//	}
-			//default:
-			//	err := fmt.Sprintf("fetch do not support type %T!\n", v)
-			//	panic(err)
 			//}
-
 			// Print out the template to std
 		}
 		return result
@@ -120,7 +128,7 @@ func main() {
 	}
 
 	tmpl, err := template.New("env.gattai.yaml").Funcs(template.FuncMap{
-		"fetch": tpl_fetch(gattai_file.TempFolder,lookUpRepoPath),
+		"fetch": tpl_fetch(gattai_file,lookUpRepoPath),
 	}).ParseFiles("env.gattai.yaml")
 	if err != nil {
 		panic(err)
