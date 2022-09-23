@@ -1,28 +1,39 @@
 version: v1
 type: CommandLineInterface
+params:
+  name:
+    desc: The kube configmap name
+    requied: true
+    type: string
+  namespace:
+    desc: The kube configmap namespace
+    requied: true
+    type: string
+  from-file:
+    desc: Create kube configmap from file
+    requied: false
+    type: string
+return: {{ stdout }}
 spec:
-  environment:
-    kind: shell
-  execute:
-    v1.23.5: &latest
-      command: kubectl
-      args:
-        - command: create
-          args:
-            - command: configmap
-              {{- with .Params }}
-              args:
-                - {{ .name }}
-                {{- range $key, $val := .from-literals }}
-                - --from-literal={{ $key }}={{ $val }}
-                {{- end }}
-                {{- with .from-file }}
-                - --from-file={{ temp_folder .key }}
-                {{- end }}
-                {{- with .from-env-file }}
-                - --from-env-file={{ temp_folder .key }}
-                {{- end }}
-                - -o yaml
-              {{- end }}
-
-    default: *latest
+  test:
+    - cmd:
+      - kubectl get configmaps --all-namespaces
+  cmds:
+    - cmd:
+      - kubectl create configmap
+      {{- with .Args }}
+      - {{ .name }}
+      {{- range $key, $val := .from-literals }}
+      - --from-literal={{ $key }}={{ $val }}
+      {{- end }}
+      {{- with .namespace }}
+      - --namespace={{ . }}
+      {{- end }}
+      {{- with .from-file }}
+      - --from-file={{ temp_folder .key }}
+      {{- end }}
+      {{- with .from-env-file }}
+      - --from-env-file={{ temp_folder .key }}
+      {{- end }}
+      - -o yaml
+      {{- end }}

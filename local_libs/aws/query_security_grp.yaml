@@ -1,30 +1,35 @@
 version: v1
 type: CommandLineInterface
+params:
+  identifier:
+    desc: The security grp identifier
+    requied: true
+    type: string
+  query:
+    desc: The security grp query
+    requied: true
+    type: string
+return: {{ stdout }}
 spec:
-  environment:
-    kind: shell
-  nix: aws-cli
-  sub-commands:
-    include: ../helper/desc_sec_grps.yaml
-    describe-security-groups:v1:
-      include-command: ../helper/desc_sec_grps_v1.yaml
-      vars:
-        filters: {{ .filters }}
-        query: {{ .query }}
-  execute:
-    v2.7.20: &latest
-      command: aws
-      args:
-        {{- with .Params }}
-        {{- with .region }}
-        - --region {{ . }}
-        {{- end }}
-        - command: ec2
-          args:
-            - include-command: ../helper/desc_sec_grps_v1.yaml
-              vars:
-                filters: {{ .filters }}
-                query: {{ .query }}
-        {{- end }}
-
-    default: *latest
+  test:
+    - cmd:
+      - aws
+      {{- with .region }}
+      - --region {{ . }}
+      {{- end }}
+      - ec2 describe-security-groups
+  cmds:
+    - cmd:
+      - aws
+      {{- with .Args }}
+      {{- with .region }}
+      - --region {{ . }}
+      {{- end }}
+      - ec2 describe-security-groups
+      {{- range $key, $val := .filters }}
+      - --filter Name={{ $key }},Values={{ $val }}
+      {{- end }}
+      {{- with .query }}
+      - --query "SecurityGroups[0].{{ .query }}"
+      {{- end }}
+      {{- end }}

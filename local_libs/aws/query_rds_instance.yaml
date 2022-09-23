@@ -1,32 +1,38 @@
 version: v1
 type: CommandLineInterface
+params:
+  identifier:
+    desc: The rds instance identifier
+    requied: true
+    type: string
+  query:
+    desc: The rds instance query
+    requied: true
+    type: string
+return: {{ stdout }}
 spec:
-  environment:
-    kind: shell
-  sub-commands:
-    describe-db-instances:v1:
-      command: describe-db-instances
-      args:
-        {{- when .identifier }}
-        - --db-instance-identifier {{ . }}
-        {{- end }}
-        {{- when .query }}
-        - --query "DBInstances[0].{{ . }}"
-        {{- end }}
-  execute:
-    v2.7.20: &latest
-      command: aws
-      args:
-        {{- with .Params }}
-        {{- with .region }}
-        - --region {{ . }}
-        {{- end }}
-        - command: rds
-          args:
-            - sub-command: describe-db-instances:v1
-              vars:
-                identifier: {{ .identifier }}
-                query: {{ .query }}
-        {{- end }}
-
-    default: *latest
+  nix:
+    package: aws-cli
+    version: v1
+  test:
+    - cmd:
+      - aws
+      {{- with .region }}
+      - --region {{ . }}
+      {{- end }}
+      - rds describe-db-instances
+  cmds:
+    - cmd:
+      - aws
+      {{- with .Args }}
+      {{- with .region }}
+      - --region {{ . }}
+      {{- end }}
+      - rds describe-db-instances
+      {{- when .identifier }}
+      - --db-instance-identifier {{ . }}
+      {{- end }}
+      {{- when .query }}
+      - --query "DBInstances[0].{{ . }}"
+      {{- end }}
+      {{- end }}

@@ -1,32 +1,38 @@
 version: v1
 type: CommandLineInterface
+params:
+  identifier:
+    desc: The elasticache replica grp identifier
+    requied: true
+    type: string
+  query:
+    desc: The elasticache replica grp query
+    requied: true
+    type: string
+return: {{ stdout }}
 spec:
-  environment:
-    kind: docker
-  sub-commands:
-    describe-replication-groups:v1:
-      command: describe-replication-groups
-      args:
-        {{ with .identifier }}
-        - --replication-group-id {{ . }}
-        {{- end }}
-        {{ with .query }}
-        - --query "ReplicationGroups[0].{{ .query }}"
-        {{- end }}
-  execute:
-    v2.7.20: &latest
-      command: aws
-      args:
-        {{- with .Params }}
-        {{- with .region }}
-        - --region {{ . }}
-        {{- end }}
-        - command: elasticache
-          args:
-            - sub-command: describe-replication-groups:v1
-              vars:
-                identifier: {{ .identifier }}
-                query: {{ .query }}
-        {{- end }}
-
-    default: *latest
+  nix:
+    package: aws-cli
+    version: v1
+  test:
+    - cmd:
+      - aws
+      {{- with .region }}
+      - --region {{ . }}
+      {{- end }}
+      - elasticache describe-replication-groups
+  cmds:
+    - cmd:
+      - aws
+      {{- with .Args }}
+      {{- with .region }}
+      - --region {{ . }}
+      {{- end }}
+      - elasticache describe-replication-groups
+      {{- when .identifier }}
+      - --replication-group-id {{ . }}
+      {{- end }}
+      {{- when .query }}
+      - --query "ReplicationGroups[0].{{ . }}"
+      {{- end }}
+      {{- end }}
