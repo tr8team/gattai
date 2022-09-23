@@ -13,27 +13,27 @@ targets:
         identifier: "staging-systems-engineering-transactional-database"
         query: "Endpoint"
     STAGING_REDIS_URL:
-      exec: aws/query_elasticache_replica_grp:v2.7.20
+      exec: aws/query_elasticache_replica_grp
       args:
         region: ap-southeast-1
         identifier: "staging-systems-engineering-cache"
         query: "ConfigurationEndpoint.Address"
     CLUSTER_SECGROUP_ID:
-      exec: aws/query_security_grp:v2.7.20
+      exec: aws/query_security_grp
       args:
         region: ap-southeast-1
         filters:
           group-name: "*staging-main-eks_cluster*"
         query: "GroupId"
     NGINX_POD_SECGROUP_ID:
-      exec: aws/query_security_grp:v2.7.20
+      exec: aws/query_security_grp
       args:
         region: ap-southeast-1
         filters:
           group-name: "*nginx-pod*"
         query: "GroupId"
     PHPFPM_POD_SECGROUP_ID:
-      exec: aws/query_security_grp:v2.7.20
+      exec: aws/query_security_grp
       args:
         region: ap-southeast-1
         filters:

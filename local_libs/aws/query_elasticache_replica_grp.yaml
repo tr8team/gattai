@@ -9,7 +9,7 @@ params:
     desc: The elasticache replica grp query
     requied: true
     type: string
-return: {{ stdout }}
+return: "stdout"
 spec:
   nix:
     package: aws-cli
