@@ -15,26 +15,26 @@ nix:
   version: v1
 spec:
   test:
-    - cmd:
-      - aws
-      {{- with .Args }}
-      {{- with .region }}
-      - --region {{ . }}
-      {{- end }}
-      - rds describe-db-instances
-      {{- end }}
+    - cmd: aws
+      args:
+        {{- with .Args }}
+        {{- with .region }}
+        - "--region {{ . }}"
+        {{- end }}
+        - "rds describe-db-instances"
+        {{- end }}
   cmds:
-    - cmd:
-      - aws
-      {{- with .Args }}
-      {{- with .region }}
-      - --region {{ . }}
-      {{- end }}
-      - rds describe-db-instances
-      {{- with .identifier }}
-      - --db-instance-identifier {{ . }}
-      {{- end }}
-      {{- with .query }}
-      - --query "DBInstances[0].{{ . }}"
-      {{- end }}
-      {{- end }}
+    - cmd: aws
+      args:
+        {{- with .Args }}
+        {{- with .region }}
+        - "--region {{ . }}"
+        {{- end }}
+        - "rds describe-db-instances"
+        {{- with .identifier }}
+        - "--db-instance-identifier {{ . }}"
+        {{- end }}
+        {{- with .query }}
+        - "--query DBInstances[0].{{ . }}"
+        {{- end }}
+        {{- end }}

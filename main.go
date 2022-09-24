@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"log"
+	"exec"
 	"bytes"
 	"strings"
 	//"net/url"
@@ -61,7 +62,7 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			var updated_target Target
 			err = yaml.Unmarshal(buf.Bytes(), &updated_target)
 			if err != nil {
-				log.Fatalf("Unmarshal: %v", err)
+				log.Fatalf("Unmarshal2: %v", err)
 			}
 			// unmarshal the update target to create the execution path
 			tokens := strings.Split(updated_target.Exec, "/")
@@ -84,10 +85,10 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			var cli_file CLIFile;
 			err = yaml.Unmarshal(buf.Bytes(), &cli_file)
 			if err != nil {
-				log.Fatalf("Unmarshal: %v", err)
+				log.Fatalf("Unmarshal3: %v", err)
 			}
 			for _, blk := range cli_file.Spec["cmds"] {
-				result = strings.Join(blk["cmd"]," ");
+				result = exec.Command(app, arg0, arg1, arg2, arg3) //strings.Join(blk["cmd"]," ");
 				lookUpReturn[string(yamlTarget)] = result
 			}
 		}
@@ -111,13 +112,13 @@ func main() {
 
 	var gattai_file GattaiFile
 
-	yamlFile, err := ioutil.ReadFile("helm_values.gattai.yaml")
+	yamlFile, err := ioutil.ReadFile("env.gattai.yaml")
     if err != nil {
         log.Printf("yamlFile.Get err   #%v ", err)
     }
 	err = yaml.Unmarshal(yamlFile, &gattai_file)
     if err != nil {
-        log.Fatalf("Unmarshal: %v", err)
+        log.Fatalf("Unmarshal1: %v", err)
     }
 
 	// TODO: if url.ParseRequestURI(repo):
@@ -129,9 +130,9 @@ func main() {
 		}
 	}
 
-	tmpl, err := template.New("helm_values.gattai.yaml").Funcs(template.FuncMap{
+	tmpl, err := template.New("env.gattai.yaml").Funcs(template.FuncMap{
 		"fetch": tpl_fetch(gattai_file,lookUpRepoPath),
-	}).ParseFiles("helm_values.gattai.yaml")
+	}).ParseFiles("env.gattai.yaml")
 	if err != nil {
 		panic(err)
 	}

@@ -10,9 +10,10 @@ params:
 return: {{- if .Args.content }} {{ temp_folder .Args.filename }} {{- else }} {{ .Args.filename }} {{- end }}
 spec:
   cmds:
-    - cmd:
+    - cmd: echo
+      args:
         {{- if .Args.content }}
         {{- with .Args }}
-        - echo {{ .content }} > {{ temp_folder .filename  }}
+        - "{{ .content }} > {{ temp_folder .filename }}"
         {{- end }}
         {{- end }}

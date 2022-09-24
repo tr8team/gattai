@@ -22,27 +22,29 @@ spec:
   #test:
   #  - cmd:
   cmds:
-    - cmd:
-      {{- with .Args }}
-      {{- with .identifier }}
-      - op item get {{ . }}
-      {{- end }}
-      {{- with .label }}
-      - --fields label={{ . }}
-      {{- end }}
-      {{- with .vault }}
-      - --vault {{ . }}
-      {{- end }}
-      {{- end }}
-    - cmd:
-      {{- with .Args }}
-      {{- with .identifier }}
-      - op item get {{ . }}
-      {{- end }}
-      {{- with .label }}
-      - --fields label={{ . }}
-      {{- end }}
-      {{- with .vault }}
-      - --vault {{ . }}
-      {{- end }}
-      {{- end }}
+    - cmd: op
+      args:
+        {{- with .Args }}
+        {{- with .identifier }}
+        - "item get {{ . }}"
+        {{- end }}
+        {{- with .label }}
+        - "--fields label={{ . }}"
+        {{- end }}
+        {{- with .vault }}
+        - "--vault {{ . }}"
+        {{- end }}
+        {{- end }}
+    - cmd: op
+      args:
+        {{- with .Args }}
+        {{- with .identifier }}
+        - "item get \"{{ . }}\""
+        {{- end }}
+        {{- with .label }}
+        - "--fields label={{ . }}"
+        {{- end }}
+        {{- with .vault }}
+        - "--vault {{ . }}"
+        {{- end }}
+        {{- end }}

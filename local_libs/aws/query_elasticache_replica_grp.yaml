@@ -15,26 +15,26 @@ nix:
   version: v1
 spec:
   test:
-    - cmd:
-      - aws
-      {{- with .Args }}
-      {{- with .region }}
-      - --region {{ . }}
-      {{- end }}
-      - elasticache describe-replication-groups
-      {{- end }}
+    - cmd: aws
+      args:
+        {{- with .Args }}
+        {{- with .region }}
+        - "--region {{ . }}"
+        {{- end }}
+        - "elasticache describe-replication-groups"
+        {{- end }}
   cmds:
-    - cmd:
-      - aws
-      {{- with .Args }}
-      {{- with .region }}
-      - --region {{ . }}
-      {{- end }}
-      - elasticache describe-replication-groups
-      {{- with .identifier }}
-      - --replication-group-id {{ . }}
-      {{- end }}
-      {{- with .query }}
-      - --query "ReplicationGroups[0].{{ . }}"
-      {{- end }}
-      {{- end }}
+    - cmd: aws
+      args:
+        {{- with .Args }}
+        {{- with .region }}
+        - "--region {{ . }}"
+        {{- end }}
+        - "elasticache describe-replication-groups"
+        {{- with .identifier }}
+        - "--replication-group-id {{ . }}"
+        {{- end }}
+        {{- with .query }}
+        - "--query ReplicationGroups[0].{{ . }}"
+        {{- end }}
+        {{- end }}

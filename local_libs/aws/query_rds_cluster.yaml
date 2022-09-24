@@ -15,26 +15,26 @@ nix:
   version: v1
 spec:
   test:
-    - cmd:
-      - aws
-      {{- with .Args }}
-      {{- with .region }}
-      - --region {{ . }}
-      {{- end }}
-      - rds describe-db-clusters
-      {{- end }}
+    - cmd: aws
+      args:
+        {{- with .Args }}
+        {{- with .region }}
+        - "--region {{ . }}"
+        {{- end }}
+        - "rds describe-db-clusters"
+        {{- end }}
   cmds:
-    - cmd:
-      - aws
-      {{- with .Args }}
-      {{- with .region }}
-      - --region {{ . }}
-      {{- end }}
-      - rds describe-db-clusters
-      {{- with .identifier }}
-      - --db-cluster-identifier {{ . }}
-      {{- end }}
-      {{- with .query }}
-      - --query "DBClusters[0].{{ . }}"
-      {{- end }}
-      {{- end }}
+    - cmd: aws
+      args:
+        {{- with .Args }}
+        {{- with .region }}
+        - "--region {{ . }}"
+        {{- end }}
+        - "rds describe-db-clusters"
+        {{- with .identifier }}
+        - "--db-cluster-identifier {{ . }}"
+        {{- end }}
+        {{- with .query }}
+        - "--query DBClusters[0].{{ . }}"
+        {{- end }}
+        {{- end }}

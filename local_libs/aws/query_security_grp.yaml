@@ -12,26 +12,26 @@ params:
 return: "stdout"
 spec:
   test:
-    - cmd:
-      - aws
-      {{- with .Args }}
-      {{- with .region }}
-      - --region {{ . }}
-      {{- end }}
-      - ec2 describe-security-groups
-      {{- end }}
+    - cmd: aws
+      args:
+        {{- with .Args }}
+        {{- with .region }}
+        - "--region {{ . }}"
+        {{- end }}
+        - "ec2 describe-security-groups"
+        {{- end }}
   cmds:
-    - cmd:
-      - aws
-      {{- with .Args }}
-      {{- with .region }}
-      - --region {{ . }}
-      {{- end }}
-      - ec2 describe-security-groups
-      {{- range $key, $val := .filters }}
-      - --filter Name={{ $key }},Values={{ $val }}
-      {{- end }}
-      {{- with .query }}
-      - --query "SecurityGroups[0].{{ . }}"
-      {{- end }}
-      {{- end }}
+    - cmd: aws
+      args:
+        {{- with .Args }}
+        {{- with .region }}
+        - "--region {{ . }}"
+        {{- end }}
+        - "ec2 describe-security-groups"
+        {{- range $key, $val := .filters }}
+        - "--filter Name={{ $key }},Values={{ $val }}"
+        {{- end }}
+        {{- with .query }}
+        - "--query SecurityGroups[0].{{ . }}"
+        {{- end }}
+        {{- end }}
