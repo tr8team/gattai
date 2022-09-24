@@ -14,10 +14,12 @@ spec:
   test:
     - cmd:
       - aws
+      {{- with .Args }}
       {{- with .region }}
       - --region {{ . }}
       {{- end }}
       - ec2 describe-security-groups
+      {{- end }}
   cmds:
     - cmd:
       - aws
@@ -30,6 +32,6 @@ spec:
       - --filter Name={{ $key }},Values={{ $val }}
       {{- end }}
       {{- with .query }}
-      - --query "SecurityGroups[0].{{ .query }}"
+      - --query "SecurityGroups[0].{{ . }}"
       {{- end }}
       {{- end }}

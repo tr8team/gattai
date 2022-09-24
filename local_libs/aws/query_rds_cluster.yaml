@@ -10,17 +10,19 @@ params:
     requied: true
     type: string
 return: "stdout"
+nix:
+  package: aws-cli
+  version: v1
 spec:
-  nix:
-    package: aws-cli
-    version: v1
   test:
     - cmd:
       - aws
+      {{- with .Args }}
       {{- with .region }}
       - --region {{ . }}
       {{- end }}
       - rds describe-db-clusters
+      {{- end }}
   cmds:
     - cmd:
       - aws
@@ -29,10 +31,10 @@ spec:
       - --region {{ . }}
       {{- end }}
       - rds describe-db-clusters
-      {{- when .identifier }}
+      {{- with .identifier }}
       - --db-cluster-identifier {{ . }}
       {{- end }}
-      {{- when .query }}
+      {{- with .query }}
       - --query "DBClusters[0].{{ . }}"
       {{- end }}
       {{- end }}

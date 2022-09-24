@@ -38,12 +38,15 @@ type CLIFile struct {
 func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(target Target) string {
 	lookUpReturn := make(map[string]string)
 	return func(target Target) string {
+		// get target generated key
 		yamlTarget, err := yaml.Marshal(target)
 		if err != nil {
 			panic(err)
 		}
+		// check if result for target already exist
 		result, ok := lookUpReturn[string(yamlTarget)]
 		if !ok {
+			// if not, parse target to see if target have dependency
 			tmpl, err := template.New("").Funcs(template.FuncMap{
 				"fetch": tpl_fetch(gattai_file,lookUpRepoPath),
 			}).Parse(string(yamlTarget))
@@ -51,21 +54,23 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 				panic(err)
 			}
 			var buf bytes.Buffer
-			if err := tmpl.Execute(&buf, gattai_file.Targets); err != nil {
+			if err := tmpl.Execute(&buf, gattai_file); err != nil {
 				panic(err)
 			}
+			// execute return template which hope is the leaf template
 			var updated_target Target
 			err = yaml.Unmarshal(buf.Bytes(), &updated_target)
 			if err != nil {
 				log.Fatalf("Unmarshal: %v", err)
 			}
+			// unmarshal the update target to create the execution path
 			tokens := strings.Split(updated_target.Exec, "/")
 			path, ok := lookUpRepoPath[tokens[0]]
 			if !ok {
 
 			}
-			tmpl_filename := strings.Join(tokens[1:],"/") + ".yaml"
-			tmpl_filepath := path + "/" + tmpl_filename
+			tmpl_filename := tokens[len(tokens)-1] + ".yaml"
+			tmpl_filepath := path + "/" + strings.Join(tokens[1:],"/") + ".yaml"
 			tmpl, err = template.New(tmpl_filename).Funcs(template.FuncMap{
 				"temp_folder": tpl_temp_folder(gattai_file.TempFolder),
 			}).ParseFiles(tmpl_filepath)
@@ -82,7 +87,8 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 				log.Fatalf("Unmarshal: %v", err)
 			}
 			for _, blk := range cli_file.Spec["cmds"] {
-				result = strings.Join(blk["cmd"]," ")
+				result = strings.Join(blk["cmd"]," ");
+				lookUpReturn[string(yamlTarget)] = result
 			}
 		}
 		return result
@@ -105,7 +111,7 @@ func main() {
 
 	var gattai_file GattaiFile
 
-	yamlFile, err := ioutil.ReadFile("env.gattai.yaml")
+	yamlFile, err := ioutil.ReadFile("helm_values.gattai.yaml")
     if err != nil {
         log.Printf("yamlFile.Get err   #%v ", err)
     }
@@ -123,9 +129,9 @@ func main() {
 		}
 	}
 
-	tmpl, err := template.New("env.gattai.yaml").Funcs(template.FuncMap{
+	tmpl, err := template.New("helm_values.gattai.yaml").Funcs(template.FuncMap{
 		"fetch": tpl_fetch(gattai_file,lookUpRepoPath),
-	}).ParseFiles("env.gattai.yaml")
+	}).ParseFiles("helm_values.gattai.yaml")
 	if err != nil {
 		panic(err)
 	}
