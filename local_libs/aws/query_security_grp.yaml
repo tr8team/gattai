@@ -16,22 +16,25 @@ spec:
       args:
         {{- with .Args }}
         {{- with .region }}
-        - "--region {{ . }}"
+        - --region {{ . }}
         {{- end }}
-        - "ec2 describe-security-groups"
+        - ec2 describe-security-groups
         {{- end }}
   cmds:
     - cmd: aws
       args:
         {{- with .Args }}
         {{- with .region }}
-        - "--region {{ . }}"
+        - --region {{ . }}
         {{- end }}
-        - "ec2 describe-security-groups"
-        {{- range $key, $val := .filters }}
-        - "--filter Name={{ $key }},Values={{ $val }}"
+        - ec2 describe-security-groups
+        {{- with .filters }}
+        - --filters
+        {{- range $key, $val := . }}
+        - Name={{ $key }},Values="{{ $val }}"
+        {{- end }}
         {{- end }}
         {{- with .query }}
-        - "--query SecurityGroups[0].{{ . }}"
+        - --query "SecurityGroups[0].{{ . }}"
         {{- end }}
         {{- end }}

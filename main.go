@@ -4,9 +4,9 @@ import (
 	"os"
 	"fmt"
 	"log"
-	"exec"
 	"bytes"
 	"strings"
+	"os/exec"
 	//"net/url"
 	"io/ioutil"
 	//"encoding/json"
@@ -18,6 +18,11 @@ import (
 type Target struct {
 	Exec string `yaml:"exec"`
 	Args map[string]interface{} `yaml:"args"`
+}
+
+type Command struct {
+	Cmd string `yaml:"cmd"`
+	Args []string `yaml:"args"`
 }
 
 type GattaiFile struct {
@@ -33,7 +38,7 @@ type CLIFile struct {
 	Type string `yaml:"type"`
 	Params map[string]interface{} `yaml:"params"`
 	Return string `yaml:"return"`
-	Spec map[string][](map[string][]string) `yaml:"spec"`
+	Spec map[string][]Command `yaml:"spec"`
 }
 
 func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(target Target) string {
@@ -88,7 +93,13 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 				log.Fatalf("Unmarshal3: %v", err)
 			}
 			for _, blk := range cli_file.Spec["cmds"] {
-				result = exec.Command(app, arg0, arg1, arg2, arg3) //strings.Join(blk["cmd"]," ");
+				//result = blk.Cmd + " " + strings.Join(blk.Args," ")
+				cmd := exec.Command(blk.Cmd, strings.Join(blk.Args," "))
+				stdout, err := cmd.Output()
+				if err != nil {
+					panic(err)
+				}
+				result = string(stdout)
 				lookUpReturn[string(yamlTarget)] = result
 			}
 		}
@@ -112,7 +123,7 @@ func main() {
 
 	var gattai_file GattaiFile
 
-	yamlFile, err := ioutil.ReadFile("env.gattai.yaml")
+	yamlFile, err := ioutil.ReadFile("helm_values.gattai.yaml")
     if err != nil {
         log.Printf("yamlFile.Get err   #%v ", err)
     }
@@ -130,9 +141,9 @@ func main() {
 		}
 	}
 
-	tmpl, err := template.New("env.gattai.yaml").Funcs(template.FuncMap{
+	tmpl, err := template.New("helm_values.gattai.yaml").Funcs(template.FuncMap{
 		"fetch": tpl_fetch(gattai_file,lookUpRepoPath),
-	}).ParseFiles("env.gattai.yaml")
+	}).ParseFiles("helm_values.gattai.yaml")
 	if err != nil {
 		panic(err)
 	}
