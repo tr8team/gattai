@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"log"
+	"path"
 	"bytes"
 	"strings"
 	"os/exec"
@@ -71,12 +72,12 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			}
 			// unmarshal the update target to create the execution path
 			tokens := strings.Split(updated_target.Exec, "/")
-			path, ok := lookUpRepoPath[tokens[0]]
+			repo_path, ok := lookUpRepoPath[tokens[0]]
 			if !ok {
 
 			}
 			tmpl_filename := tokens[len(tokens)-1] + ".yaml"
-			tmpl_filepath := path + "/" + strings.Join(tokens[1:],"/") + ".yaml"
+			tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
 			tmpl, err = template.New(tmpl_filename).Funcs(template.FuncMap{
 				"temp_folder": tpl_temp_folder(gattai_file.TempFolder),
 			}).ParseFiles(tmpl_filepath)
@@ -94,12 +95,12 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			}
 			for _, blk := range cli_file.Spec["cmds"] {
 				//result = blk.Cmd + " " + strings.Join(blk.Args," ")
-				cmd := exec.Command(blk.Cmd, strings.Join(blk.Args," "))
+				cmd := exec.Command(blk.Cmd,blk.Args...)
 				stdout, err := cmd.Output()
 				if err != nil {
-					panic(err)
+					log.Fatalf("Command: %v", err)
 				}
-				result = string(stdout)
+				result = strings.TrimSpace(string(stdout))
 				lookUpReturn[string(yamlTarget)] = result
 			}
 		}

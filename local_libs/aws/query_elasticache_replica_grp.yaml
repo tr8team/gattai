@@ -19,22 +19,28 @@ spec:
       args:
         {{- with .Args }}
         {{- with .region }}
-        - --region {{ . }}
+        - --region
+        - {{ . }}
         {{- end }}
-        - elasticache describe-replication-groups
+        - elasticache
+        - describe-replication-groups
         {{- end }}
   cmds:
     - cmd: aws
       args:
         {{- with .Args }}
         {{- with .region }}
-        - --region {{ . }}
+        - --region
+        - {{ . }}
         {{- end }}
-        - elasticache describe-replication-groups
+        - elasticache
+        - describe-replication-groups
         {{- with .identifier }}
-        - --replication-group-id {{ . }}
+        - --replication-group-id
+        - {{ . }}
         {{- end }}
         {{- with .query }}
-        - --query "ReplicationGroups[0].{{ . }}"
+        - --query
+        - "ReplicationGroups[0].{{ . }}"
         {{- end }}
         {{- end }}
