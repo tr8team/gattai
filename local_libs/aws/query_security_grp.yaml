@@ -9,21 +9,20 @@ params:
     desc: The security grp query
     requied: true
     type: string
-return: "stdout"
 spec:
   test:
-    - cmd: aws
+    - command: aws
       args:
-        {{- with .Args }}
+        {{- with .Vars }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}
         - ec2 describe-security-groups
         {{- end }}
   cmds:
-    - cmd: aws
+    - command: aws
       args:
-        {{- with .Args }}
+        {{- with .Vars }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}

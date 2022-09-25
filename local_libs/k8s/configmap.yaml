@@ -13,27 +13,28 @@ params:
     desc: Create kube configmap from file
     requied: false
     type: string
-return: "stdout"
 spec:
   test:
-    - cmd:
-      - kubectl get configmaps --all-namespaces
+    - command: kubectl
+      args:
+        - get configmaps --all-namespaces
   cmds:
-    - cmd:
-      - kubectl create configmap
-      {{- with .Args }}
-      - {{ .name }}
-      {{- range $key, $val := .from-literals }}
-      - --from-literal={{ $key }}={{ $val }}
-      {{- end }}
-      {{- with .namespace }}
-      - --namespace={{ . }}
-      {{- end }}
-      {{- with .from-file }}
-      - --from-file={{ temp_folder .key }}
-      {{- end }}
-      {{- with .from-env-file }}
-      - --from-env-file={{ temp_folder .key }}
-      {{- end }}
-      - -o yaml
-      {{- end }}
+    - command: kubectl
+      args:
+        -  create configmap
+        {{- with .Vars }}
+        - {{ .name }}
+        {{- range $key, $val := .from-literals }}
+        - --from-literal={{ $key }}={{ $val }}
+        {{- end }}
+        {{- with .namespace }}
+        - --namespace={{ . }}
+        {{- end }}
+        {{- with .from-file }}
+        - --from-file={{ temp_folder .key }}
+        {{- end }}
+        {{- with .from-env-file }}
+        - --from-env-file={{ temp_folder .key }}
+        {{- end }}
+        - -o yaml
+        {{- end }}

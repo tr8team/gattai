@@ -9,24 +9,23 @@ params:
     desc: The elasticache replica grp query
     requied: true
     type: string
-return: "stdout"
 nix:
   package: aws-cli
   version: v1
 spec:
   test:
-    - cmd: aws
+    - command: aws
       args:
-        {{- with .Args }}
+        {{- with .Vars }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}
         - elasticache describe-replication-groups
         {{- end }}
   cmds:
-    - cmd: aws
+    - command: aws
       args:
-        {{- with .Args }}
+        {{- with .Vars }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}

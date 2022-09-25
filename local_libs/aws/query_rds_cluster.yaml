@@ -9,24 +9,23 @@ params:
     desc: The rds cluster query
     requied: true
     type: string
-return: "stdout"
 nix:
   package: aws-cli
   version: v1
 spec:
   test:
-    - cmd: aws
+    - command: aws
       args:
-        {{- with .Args }}
+        {{- with .Vars }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}
         - rds describe-db-clusters
         {{- end }}
   cmds:
-    - cmd: aws
+    - command: aws
       args:
-        {{- with .Args }}
+        {{- with .Vars }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}

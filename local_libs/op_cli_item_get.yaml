@@ -13,18 +13,17 @@ params:
     desc:
     requied: true
     type: string
-return: "stdout"
 spec:
   # what is this? 
   #environment:
   #  kind: docker
   #  repo:
   #test:
-  #  - cmd:
+  #  - command:
   cmds:
-    - cmd: op
+    - command: op
       args:
-        {{- with .Args }}
+        {{- with .Vars }}
         {{- with .identifier }}
         - item get "{{ . }}"
         {{- end }}

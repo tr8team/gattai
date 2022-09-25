@@ -9,24 +9,23 @@ params:
     desc: The rds instance query
     requied: true
     type: string
-return: "stdout"
 nix:
   package: aws-cli
   version: v1
 spec:
   test:
-    - cmd: aws
+    - command: aws
       args:
-        {{- with .Args }}
+        {{- with .Vars }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}
         - rds describe-db-instances
         {{- end }}
   cmds:
-    - cmd: aws
+    - command: aws
       args:
-        {{- with .Args }}
+        {{- with .Vars }}
         {{- with .region }}
         - --region {{ . }}
         {{- end }}

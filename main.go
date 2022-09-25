@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"log"
 	"path"
+	"time"
 	"bytes"
 	"strings"
 	"context"
 	"runtime"
-	//"os/exec"
 	//"net/url"
 	"io/ioutil"
 	"text/template"
 	"gopkg.in/yaml.v2"
-	//"mvdan.cc/sh/v3/shell"
 	//"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -24,13 +23,18 @@ import (
 
 type Target struct {
 	Exec string `yaml:"exec"`
-	Args map[string]interface{} `yaml:"args"`
+	Vars map[string]interface{} `yaml:"vars"`
 }
 
-type Command struct {
-	Cmd string `yaml:"cmd"`
-	Args []string `yaml:"args"`
-}
+//type Command struct {
+//	Command string `yaml:"command"`
+//	Args []string `yaml:"args"`
+//}
+//
+//type Include struct {
+//	Include string `yaml:"include"`
+//	Vars []string `yaml:"vars"`
+//}
 
 type GattaiFile struct {
     Version string `yaml:"version"`
@@ -45,10 +49,10 @@ type CLIFile struct {
 	Type string `yaml:"type"`
 	Params map[string]interface{} `yaml:"params"`
 	Return string `yaml:"return"`
-	Spec map[string][]Command `yaml:"spec"`
+	Spec map[string][](map[string]interface{}) `yaml:"spec"`
 }
 
-func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(target Target) string {
+func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string) func(target Target) string {
 	lookUpReturn := make(map[string]string)
 	return func(target Target) string {
 		// get target generated key
@@ -62,7 +66,7 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 		if !ok {
 			// if not, parse target to see if target have dependency
 			tmpl, err := template.New("").Funcs(template.FuncMap{
-				"fetch": tpl_fetch(gattai_file,lookUpRepoPath),
+				"fetch": tpl_fetch(gattai_file,temp_dir,lookUpRepoPath),
 			}).Parse(string(yamlTarget))
 			if err != nil {
 				panic(err)
@@ -83,10 +87,10 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			if !ok {
 
 			}
-			tmpl_filename := tokens[len(tokens)-1] + ".yaml"
 			tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
+			tmpl_filename := path.Base(tmpl_filepath)
 			tmpl, err = template.New(tmpl_filename).Funcs(template.FuncMap{
-				"temp_folder": tpl_temp_folder(gattai_file.TempFolder),
+				"temp_folder": tpl_temp_folder(temp_dir),
 			}).ParseFiles(tmpl_filepath)
 			if err != nil {
 				panic(err)
@@ -102,24 +106,22 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			}
 			src := ""
 			for _, blk := range cli_file.Spec["cmds"] {
-
-				src += blk.Cmd + " " + strings.Join(blk.Args," ") + ";"
-				//expArgs, err := shell.Expand(strings.Join(blk.Args," "),nil)
-				//if err != nil {
-				//	log.Fatalf("Expand: %v", err)
+				if command, ok := blk["command"].(string); ok {
+					src += command
+					switch args := blk["args"].(type) {
+					case []interface {}:
+						for _, elem := range args {
+							src +=  " " + elem.(string)
+						}
+						src +=  ";"
+					default:
+						err := fmt.Sprintf("fetch do not support type %T!\n", args)
+						panic(err)
+					}
+				}
+				//if include, ok := blk["include"].(string); ok {
+				//
 				//}
-				//fmt.Println(expArgs)
-				//out, err := shell.Fields(expArgs, nil)
-				//if err != nil {
-				//	log.Fatalf("Fields: %v", err)
-				//}
-				//cmd := exec.Command(blk.Cmd,out...)
-				//stdout, err := cmd.Output()
-				//if err != nil {
-				//	log.Fatalf("Command: %v", err)
-				//}
-				//result = strings.TrimSpace(string(stdout))
-				//lookUpReturn[string(yamlTarget)] = result
 			}
 
 			file, _ := syntax.NewParser().Parse(strings.NewReader(src), "")
@@ -130,10 +132,27 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 				}
 				return interp.DefaultOpenHandler()(ctx, path, flag, perm)
 			}
+			exec := func(ctx context.Context, args []string) error {
+				hc := interp.HandlerCtx(ctx)
+
+				//if args[0] == "join" {
+				//	fmt.Fprintln(hc.Stdout, strings.Join(args[2:], args[1]))
+				//	return nil
+				//}
+
+				if _, err := interp.LookPathDir(hc.Dir, hc.Env, args[0]); err != nil {
+					fmt.Printf("%s is not installed\n", args[0])
+					return interp.NewExitStatus(1)
+				}
+
+				return interp.DefaultExecHandler(2*time.Second)(ctx, args)
+			}
 			buf.Reset()
 			runner, _ := interp.New(
+				//interp.Env(expand.ListEnviron("GLOBAL=global_value")),
 				interp.StdIO(nil, &buf, os.Stdout),
 				interp.OpenHandler(open),
+				interp.ExecHandler(exec),
 			)
 			err = runner.Run(context.TODO(), file)
 			if err != nil {
@@ -146,9 +165,9 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 	}
 }
 
-func tpl_temp_folder(tempFolder string) func(filename string) string {
+func tpl_temp_folder(temp_dir string) func(filename string) string {
 	return func(filename string) string {
-		return tempFolder + "/" + filename
+		return path.Join(temp_dir,filename)
 	}
 }
 
@@ -162,7 +181,7 @@ func main() {
 
 	var gattai_file GattaiFile
 
-	yamlFile, err := ioutil.ReadFile("env.gattai.yaml")
+	yamlFile, err := ioutil.ReadFile("helm_values.gattai.yaml")
     if err != nil {
         log.Printf("yamlFile.Get err   #%v ", err)
     }
@@ -170,6 +189,12 @@ func main() {
     if err != nil {
         log.Fatalf("Unmarshal1: %v", err)
     }
+
+	temp_dir, err := os.MkdirTemp(gattai_file.TempFolder, "gattai_tmp")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(temp_dir) // clean up
 
 	// TODO: if url.ParseRequestURI(repo):
 	// download repo and return path
@@ -180,9 +205,9 @@ func main() {
 		}
 	}
 
-	tmpl, err := template.New("env.gattai.yaml").Funcs(template.FuncMap{
-		"fetch": tpl_fetch(gattai_file,lookUpRepoPath),
-	}).ParseFiles("env.gattai.yaml")
+	tmpl, err := template.New("helm_values.gattai.yaml").Funcs(template.FuncMap{
+		"fetch": tpl_fetch(gattai_file,temp_dir,lookUpRepoPath),
+	}).ParseFiles("helm_values.gattai.yaml")
 	if err != nil {
 		panic(err)
 	}

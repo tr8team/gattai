@@ -1,6 +1,6 @@
 version: v1
 
-temp_folder: /tmp/gattai_tmp
+temp_folder: ./local_tmp
 
 enforce_targets:
   default:
@@ -18,40 +18,40 @@ targets:
   default:
     STAGING_MYSQL_URL:
       exec: local-src/aws/query_rds_cluster
-      args:
+      vars:
         region: ap-southeast-1
         identifier: staging-systems-engineering-transactional-database
         query: Endpoint
     STAGING_REDIS_URL:
       exec: local-src/aws/query_elasticache_replica_grp
-      args:
+      vars:
         region: ap-southeast-1
         identifier: staging-systems-engineering-cache
         query: ConfigurationEndpoint.Address
     CLUSTER_SECGROUP_ID:
       exec: local-src/aws/query_security_grp
-      args:
+      vars:
         region: ap-southeast-1
         filters:
           group-name: "*staging-main-eks_cluster*"
         query: GroupId
     NGINX_POD_SECGROUP_ID:
       exec: local-src/aws/query_security_grp
-      args:
+      vars:
         region: ap-southeast-1
         filters:
           group-name: "*staging-systems-engineering-frontend*"
         query: GroupId
     PHPFPM_POD_SECGROUP_ID:
       exec: local-src/aws/query_security_grp
-      args:
+      vars:
         region: ap-southeast-1
         filters:
           group-name: "*staging-systems-engineering-web-app*"
         query: GroupId
     return:
-      exec: default
-      args:
+      exec: local-src/write_temp_file
+      vars:
         filename: values.yaml
         content: |
           nginx:
