@@ -25,6 +25,7 @@ with pkgs;
     terraform
     terraform-docs
     kubectx
+    _1password
     go
   ];
 

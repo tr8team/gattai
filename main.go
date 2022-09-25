@@ -2,18 +2,24 @@ package main
 
 import (
 	"os"
+	"io"
 	"fmt"
 	"log"
 	"path"
 	"bytes"
 	"strings"
-	"os/exec"
+	"context"
+	"runtime"
+	//"os/exec"
 	//"net/url"
 	"io/ioutil"
-	//"encoding/json"
-	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/gattai-core"
 	"text/template"
+	"gopkg.in/yaml.v2"
+	//"mvdan.cc/sh/v3/shell"
+	//"mvdan.cc/sh/v3/expand"
+	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/syntax"
+	"github.com/tr8team/gattai/src/gattai-core"
 )
 
 type Target struct {
@@ -50,6 +56,7 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 		if err != nil {
 			panic(err)
 		}
+		var buf bytes.Buffer
 		// check if result for target already exist
 		result, ok := lookUpReturn[string(yamlTarget)]
 		if !ok {
@@ -60,7 +67,7 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			if err != nil {
 				panic(err)
 			}
-			var buf bytes.Buffer
+			buf.Reset()
 			if err := tmpl.Execute(&buf, gattai_file); err != nil {
 				panic(err)
 			}
@@ -84,7 +91,7 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			if err != nil {
 				panic(err)
 			}
-			//var buf bytes.Buffer
+			buf.Reset()
 			if err := tmpl.Execute(&buf, updated_target); err != nil {
 				panic(err)
 			}
@@ -93,16 +100,47 @@ func tpl_fetch(gattai_file GattaiFile, lookUpRepoPath map[string]string) func(ta
 			if err != nil {
 				log.Fatalf("Unmarshal3: %v", err)
 			}
+			src := ""
 			for _, blk := range cli_file.Spec["cmds"] {
-				//result = blk.Cmd + " " + strings.Join(blk.Args," ")
-				cmd := exec.Command(blk.Cmd,blk.Args...)
-				stdout, err := cmd.Output()
-				if err != nil {
-					log.Fatalf("Command: %v", err)
-				}
-				result = strings.TrimSpace(string(stdout))
-				lookUpReturn[string(yamlTarget)] = result
+
+				src += blk.Cmd + " " + strings.Join(blk.Args," ") + ";"
+				//expArgs, err := shell.Expand(strings.Join(blk.Args," "),nil)
+				//if err != nil {
+				//	log.Fatalf("Expand: %v", err)
+				//}
+				//fmt.Println(expArgs)
+				//out, err := shell.Fields(expArgs, nil)
+				//if err != nil {
+				//	log.Fatalf("Fields: %v", err)
+				//}
+				//cmd := exec.Command(blk.Cmd,out...)
+				//stdout, err := cmd.Output()
+				//if err != nil {
+				//	log.Fatalf("Command: %v", err)
+				//}
+				//result = strings.TrimSpace(string(stdout))
+				//lookUpReturn[string(yamlTarget)] = result
 			}
+
+			file, _ := syntax.NewParser().Parse(strings.NewReader(src), "")
+
+			open := func(ctx context.Context, path string, flag int, perm os.FileMode) (io.ReadWriteCloser, error) {
+				if runtime.GOOS == "windows" && path == "/dev/null" {
+					path = "NUL"
+				}
+				return interp.DefaultOpenHandler()(ctx, path, flag, perm)
+			}
+			buf.Reset()
+			runner, _ := interp.New(
+				interp.StdIO(nil, &buf, os.Stdout),
+				interp.OpenHandler(open),
+			)
+			err = runner.Run(context.TODO(), file)
+			if err != nil {
+				log.Fatalf("Run: %v", err)
+			}
+			result = strings.TrimSpace(buf.String())
+			lookUpReturn[string(yamlTarget)] = result
 		}
 		return result
 	}
@@ -124,7 +162,7 @@ func main() {
 
 	var gattai_file GattaiFile
 
-	yamlFile, err := ioutil.ReadFile("helm_values.gattai.yaml")
+	yamlFile, err := ioutil.ReadFile("env.gattai.yaml")
     if err != nil {
         log.Printf("yamlFile.Get err   #%v ", err)
     }
@@ -142,9 +180,9 @@ func main() {
 		}
 	}
 
-	tmpl, err := template.New("helm_values.gattai.yaml").Funcs(template.FuncMap{
+	tmpl, err := template.New("env.gattai.yaml").Funcs(template.FuncMap{
 		"fetch": tpl_fetch(gattai_file,lookUpRepoPath),
-	}).ParseFiles("helm_values.gattai.yaml")
+	}).ParseFiles("env.gattai.yaml")
 	if err != nil {
 		panic(err)
 	}

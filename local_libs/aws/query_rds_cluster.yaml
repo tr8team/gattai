@@ -19,28 +19,22 @@ spec:
       args:
         {{- with .Args }}
         {{- with .region }}
-        - --region
-        - {{ . }}
+        - --region {{ . }}
         {{- end }}
-        - rds
-        - describe-db-clusters
+        - rds describe-db-clusters
         {{- end }}
   cmds:
     - cmd: aws
       args:
         {{- with .Args }}
         {{- with .region }}
-        - --region
-        - {{ . }}
+        - --region {{ . }}
         {{- end }}
-        - rds
-        - describe-db-clusters
+        - rds describe-db-clusters
         {{- with .identifier }}
-        - --db-cluster-identifier
-        - {{ . }}
+        - --db-cluster-identifier {{ . }}
         {{- end }}
         {{- with .query }}
-        - --query
-        - "DBClusters[0].{{ . }}"
+        - --query "DBClusters[0].{{ . }}"
         {{- end }}
         {{- end }}

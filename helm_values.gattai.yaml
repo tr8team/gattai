@@ -1,6 +1,6 @@
 version: v1
 
-temp_folder: /tmp
+temp_folder: /tmp/gattai_tmp
 
 enforce_targets:
   default:

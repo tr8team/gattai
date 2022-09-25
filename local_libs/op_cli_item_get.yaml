@@ -26,25 +26,12 @@ spec:
       args:
         {{- with .Args }}
         {{- with .identifier }}
-        - "item get {{ . }}"
+        - item get "{{ . }}"
         {{- end }}
         {{- with .label }}
-        - "--fields label={{ . }}"
+        - --fields label={{ . }}
         {{- end }}
         {{- with .vault }}
-        - "--vault {{ . }}"
-        {{- end }}
-        {{- end }}
-    - cmd: op
-      args:
-        {{- with .Args }}
-        {{- with .identifier }}
-        - "item get \"{{ . }}\""
-        {{- end }}
-        {{- with .label }}
-        - "--fields label={{ . }}"
-        {{- end }}
-        {{- with .vault }}
-        - "--vault {{ . }}"
+        - --vault {{ . }}
         {{- end }}
         {{- end }}
