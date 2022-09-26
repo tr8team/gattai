@@ -7,9 +7,7 @@ import (
 	"log"
 	"path"
 	"time"
-	"flag"
 	"bytes"
-	"errors"
 	"strings"
 	"context"
 	"runtime"
@@ -20,7 +18,7 @@ import (
 	//"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
-	//"github.com/jessevdk/go-flags"
+	"github.com/spf13/cobra"
 	"github.com/tr8team/gattai/src/gattai-core"
 )
 
@@ -45,144 +43,123 @@ type CLIFile struct {
 	Spec map[string][](map[string]interface{}) `yaml:"spec"`
 }
 
-type RunCommand struct {
-	fs *flag.FlagSet
+func NewRunCommand() *cobra.Command {
 
-	keeptempfiles bool
-	destination string
-}
+	var keepTempFiles bool
+	var destination string
 
-type Runner interface {
-	Init([]string) error
-	Run() error
-	Name() string
-}
+	runCmd := &cobra.Command{
+		Use:   "run <namespace> <target> [gattaifile_path]",
+		//Aliases: []string{"insp"},
+		Short:  "Run a target",
+		Args:  cobra.MinimumNArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
 
-func NewRunCommand() *RunCommand {
-	rc := &RunCommand{
-		fs: flag.NewFlagSet("run", flag.ContinueOnError),
-	}
+			gattaifile_path := "GattaiFile.yaml"
 
-	rc.fs.BoolVar(&rc.keeptempfiles, "keeptempfiles", false, "Clean up temporary create files")
-	rc.fs.StringVar(&rc.destination, "destination", "", "The path where the output will go to")
+			if len(args) >= 3 {
+				gattaifile_path = args[2]
+			}
 
-	return rc
-}
+			namespace_id := args[0]
+			target_id := args[1]
 
-func (rc *RunCommand) Name() string {
-	return rc.fs.Name()
-}
+			var gattaiFile GattaiFile
 
-func (rc *RunCommand) Init(args []string) error {
-	return rc.fs.Parse(args)
-}
+			yamlFile, err := ioutil.ReadFile(gattaifile_path)
+			if err != nil {
+				log.Fatalf("Error reading Gattai File: %v", err)
+			}
+			err = yaml.Unmarshal(yamlFile, &gattaiFile)
+			if err != nil {
+				log.Fatalf("Error parsing Gattai File: %v", err)
+			}
 
-func (rc *RunCommand) Run() error {
-
-	args := rc.fs.Args()
-
-	if len(args) < 3 {
-		return errors.New("No <namespace> or <target> or <gattai-file> provided!")
-	}
-
-	namespace_id := args[0]
-	target_id := args[1]
-	gattaifile_path := args[2]
-
-	var gattaiFile GattaiFile
-
-	yamlFile, err := ioutil.ReadFile(gattaifile_path)
-    if err != nil {
-		return fmt.Errorf("Error reading Gattai File: %v", err)
-    }
-	err = yaml.Unmarshal(yamlFile, &gattaiFile)
-    if err != nil {
-		return fmt.Errorf("Error parsing Gattai File: %v", err)
-    }
-
-	lookUpReturn := make(map[string]string)
-	// TODO: if url.ParseRequestURI(repo):
-	// download repo and return path
-	lookUpRepoPath := make(map[string]string)
-	for key, val := range gattaiFile.Repos {
-		if repo, ok := val["repo"];  ok  {
-			lookUpRepoPath[key] = repo
-		}
-	}
-
-	tempDir, err := os.MkdirTemp(gattaiFile.TempFolder, "gattai_tmp")
-	if err != nil {
-		return fmt.Errorf("Error creating temporary folder: %v", err)
-	}
-	if rc.keeptempfiles == false {
-		fmt.Println("Clean up temp files!")
-		defer os.RemoveAll(tempDir) // clean up
-	}
-
-	switch namespace_id {
-	case "*":
-		switch  target_id {
-		case "*":
-			// all namespaces and all targets
-			for _, targets := range gattaiFile.Targets {
-				for _, target := range targets {
-					result := tpl_fetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
-					fmt.Println(result)
+			lookUpReturn := make(map[string]string)
+			// TODO: if url.ParseRequestURI(repo):
+			// download repo and return path
+			lookUpRepoPath := make(map[string]string)
+			for key, val := range gattaiFile.Repos {
+				if repo, ok := val["repo"];  ok  {
+					lookUpRepoPath[key] = repo
 				}
 			}
-		default:
-			// all namespaces and a single target
-			for _, targets := range gattaiFile.Targets {
-				if target, ok := targets[target_id]; ok {
-					result := tpl_fetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
-					fmt.Println(result)
-				}
+
+			tempDir, err := os.MkdirTemp(gattaiFile.TempFolder, "gattai_tmp")
+			if err != nil {
+				log.Fatalf("Error creating temporary folder: %v", err)
 			}
-		}
-	default:
-		if targets , ok := gattaiFile.Targets[namespace_id]; ok {
-			switch  target_id {
+			if keepTempFiles == false {
+				fmt.Println("Clean up temp files!")
+				defer os.RemoveAll(tempDir) // clean up
+			}
+
+			switch namespace_id {
 			case "*":
-				// a single namespace and all targets
-				for _, target := range targets {
-					result := tpl_fetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
-					fmt.Println(result)
+				switch  target_id {
+				case "*":
+					// all namespaces and all targets
+					for _, targets := range gattaiFile.Targets {
+						for _, target := range targets {
+							result := tpl_fetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
+							fmt.Println(result)
+						}
+					}
+				default:
+					// all namespaces and a single target
+					for _, targets := range gattaiFile.Targets {
+						if target, ok := targets[target_id]; ok {
+							result := tpl_fetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
+							fmt.Println(result)
+						}
+					}
 				}
 			default:
-				// a single namespace and a single target
-				if target, ok := targets[target_id]; ok {
-					result := tpl_fetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
-					fmt.Println(result)
+				if targets , ok := gattaiFile.Targets[namespace_id]; ok {
+					switch  target_id {
+					case "*":
+						// a single namespace and all targets
+						for _, target := range targets {
+							result := tpl_fetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
+							fmt.Println(result)
+						}
+					default:
+						// a single namespace and a single target
+						if target, ok := targets[target_id]; ok {
+							result := tpl_fetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
+							fmt.Println(result)
+						}
+					}
 				}
 			}
-		}
+		},
 	}
 
-	return nil
+	runCmd.Flags().BoolVarP(&keepTempFiles, "keep-temp", "k", false, "Keep temporary created files")
+	runCmd.Flags().StringVarP(&destination, "destination", "d", "", "Save to filepath")
+
+	return runCmd
 }
 
-func root(args []string) error {
-	if len(args) < 1 {
-		return errors.New("You must pass a sub-command")
+func NewRootCommand() *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:  "gattai",
+		Version: "0.0.1",
+		Short: "gattai - a simple CLI to transform and inspect strings",
+		Long: `gattai is a super fancy CLI (kidding)
+
+	One can use stringer to modify or inspect strings straight from the terminal`,
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
 	}
 
-	cmds := []Runner{
-		NewRunCommand(),
-	}
+	rootCmd.AddCommand(NewRunCommand());
 
-	subcommand := os.Args[1]
-
-	for _, cmd := range cmds {
-		if cmd.Name() == subcommand {
-			cmd.Init(os.Args[2:])
-			return cmd.Run()
-		}
-	}
-
-	return fmt.Errorf("Unknown subcommand: %s", subcommand)
+	return rootCmd
 }
 
-func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn map[string]string) func(target Target) string {
+func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn map[string]string) func(Target) string {
 	return func(target Target) string {
 		// get target generated key
 		yamlTarget, err := yaml.Marshal(target)
@@ -219,7 +196,8 @@ func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[strin
 			tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
 			tmpl_filename := path.Base(tmpl_filepath)
 			tmpl, err = template.New(tmpl_filename).Funcs(template.FuncMap{
-				"temp_folder": tpl_temp_folder(temp_dir),
+				"temp_dir": tpl_temp_dir(temp_dir),
+				"format": tpl_format(),
 			}).ParseFiles(tmpl_filepath)
 			if err != nil {
 				panic(err)
@@ -294,7 +272,14 @@ func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[strin
 	}
 }
 
-func tpl_temp_folder(temp_dir string) func(filename string) string {
+func tpl_format() func(string) string {
+	return func(content string) string {
+		token := strings.Split(content, "\n")
+		return strings.Join(token, "\\n")
+	}
+}
+
+func tpl_temp_dir(temp_dir string) func(string) string {
 	return func(filename string) string {
 		return path.Join(temp_dir,filename)
 	}
@@ -303,8 +288,10 @@ func tpl_temp_folder(temp_dir string) func(filename string) string {
 func main() {
 	print.PrintHello()
 
-	if err := root(os.Args[1:]); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	rootCmd := NewRootCommand()
+
+    if err := rootCmd.Execute(); err != nil {
+        fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing your CLI '%s'", err)
+        os.Exit(1)
+    }
 }

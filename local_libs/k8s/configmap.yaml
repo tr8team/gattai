@@ -21,7 +21,7 @@ spec:
   cmds:
     - command: kubectl
       args:
-        -  create configmap
+        - create configmap
         {{- with .Vars }}
         - {{ .name }}
         {{- range $key, $val := .from_literals }}
@@ -31,10 +31,10 @@ spec:
         - --namespace={{ . }}
         {{- end }}
         {{- with .from_file }}
-        - --from-file={{ temp_folder .key }}
+        - --from-file={{ . }}
         {{- end }}
         {{- with .from_env_file }}
-        - --from-env-file={{ temp_folder .key }}
+        - --from-env-file={{ . }}
         {{- end }}
         - --dry-run=client -o yaml
         {{- end }}

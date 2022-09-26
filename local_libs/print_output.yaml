@@ -12,5 +12,5 @@ spec:
     - command: echo
       args:
         {{- with .Vars }}
-        - "\"{{ .content }}\""
+        - "\"{{ format .content }}\""
         {{- end }}
