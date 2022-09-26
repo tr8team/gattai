@@ -45,6 +45,7 @@ type CLIFile struct {
 
 func NewRunCommand() *cobra.Command {
 
+	var noEnforceTargets bool
 	var keepTempFiles bool
 	var destination string
 
@@ -73,6 +74,20 @@ func NewRunCommand() *cobra.Command {
 			err = yaml.Unmarshal(yamlFile, &gattaiFile)
 			if err != nil {
 				log.Fatalf("Error parsing Gattai File: %v", err)
+			}
+
+			if noEnforceTargets == false {
+				for namespace_id, target_id_list := range gattaiFile.EnforceTargets {
+					if targets, ok := gattaiFile.Targets[namespace_id]; ok {
+						for _, target_id := range target_id_list {
+							if _, ok := targets[target_id]; !ok {
+								log.Fatalf("Target from <%v> is required by enforced-target: %v", namespace_id, target_id)
+							}
+						}
+					} else {
+						log.Fatalf("Namespace is required by enforced-target: %v", namespace_id)
+					}
+				}
 			}
 
 			lookUpReturn := make(map[string]string)
@@ -135,6 +150,7 @@ func NewRunCommand() *cobra.Command {
 		},
 	}
 
+	runCmd.Flags().BoolVarP(&noEnforceTargets, "no-enforce", "n", false, "Do not enforce target")
 	runCmd.Flags().BoolVarP(&keepTempFiles, "keep-temp", "k", false, "Keep temporary created files")
 	runCmd.Flags().StringVarP(&destination, "destination", "d", "", "Save to filepath")
 
