@@ -24,17 +24,17 @@ spec:
         -  create configmap
         {{- with .Vars }}
         - {{ .name }}
-        {{- range $key, $val := .from-literals }}
+        {{- range $key, $val := .from_literals }}
         - --from-literal={{ $key }}={{ $val }}
         {{- end }}
         {{- with .namespace }}
         - --namespace={{ . }}
         {{- end }}
-        {{- with .from-file }}
+        {{- with .from_file }}
         - --from-file={{ temp_folder .key }}
         {{- end }}
-        {{- with .from-env-file }}
+        {{- with .from_env_file }}
         - --from-env-file={{ temp_folder .key }}
         {{- end }}
-        - -o yaml
+        - --dry-run=client -o yaml
         {{- end }}

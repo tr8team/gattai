@@ -9,10 +9,10 @@ params:
     desc: The elasticache replica grp query
     requied: true
     type: string
-nix:
-  package: aws-cli
-  version: v1
 spec:
+  nix:
+    package: aws-cli
+    version: v1
   test:
     - command: aws
       args:
