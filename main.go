@@ -8,7 +8,6 @@ import (
 	"path"
 	"time"
 	"bytes"
-	//"reflect"
 	"strings"
 	"context"
 	"runtime"
@@ -42,8 +41,7 @@ type CLIFile struct {
 	Version string `yaml:"version"`
 	Type string `yaml:"type"`
 	Params map[string]interface{} `yaml:"params"`
-	Return string `yaml:"return"`
-	Spec map[string][](map[string]interface{}) `yaml:"spec"`
+	Spec map[string]interface{} `yaml:"spec"`
 }
 
 func NewRunCommand() *cobra.Command {
@@ -238,6 +236,74 @@ func NewRootCommand() *cobra.Command {
 	return rootCmd
 }
 
+func rec_cmds(updated_target Target,repo_path string, action_path string, temp_dir string) string {
+	tmpl_filepath := path.Join(repo_path,action_path) + ".yaml"
+	tmpl_filename := path.Base(tmpl_filepath)
+	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
+		"temp_dir": tpl_temp_dir(temp_dir),
+		"format": tpl_format(),
+	}).ParseFiles(tmpl_filepath)
+	if err != nil {
+		panic(err)
+	}
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, updated_target); err != nil {
+		panic(err)
+	}
+	var cli_file CLIFile;
+	//fmt.Printf("%s\n", buf.String())
+	err = yaml.Unmarshal(buf.Bytes(), &cli_file)
+	if err != nil {
+		log.Fatalf("Unmarshal3: %v", err)
+	}
+
+	result := ""
+	switch cmds := cli_file.Spec["cmds"].(type){
+	case []interface{}:
+		for _, blk := range cmds {
+			switch blk_map := blk.(type) {
+			case map[interface{}]interface{}:
+				if command, ok := blk_map["command"].(string); ok {
+					result += command
+					switch args := blk_map["args"].(type) {
+					case []interface {}:
+						for _, elem := range args {
+							result +=  " " + elem.(string)
+						}
+					default:
+						log.Fatalf("fetch do not support type %T!\n", args)
+					}
+					result +=  ";"
+				}
+				if include_path, ok := blk_map["include"].(string); ok {
+					switch vars_map := blk_map["vars"].(type) {
+					case map[interface{}]interface{}:
+						vars_remap := make(map[string]interface{})
+						for key, val := range vars_map {
+							if key_id, ok := key.(string); ok {
+								vars_remap[key_id] = val
+							}
+						}
+						new_target := Target {
+							Exec: include_path,
+							Vars: vars_remap,
+						}
+						result += rec_cmds(new_target,repo_path, include_path, temp_dir)
+					default:
+						log.Fatalf("fetch do not support type %T!\n", vars_map)
+					}
+				}
+			default:
+				log.Fatalf("fetch do not support type %T!\n", blk_map)
+			}
+		}
+	default:
+		log.Fatalf("fetch do not support type %T!\n", cmds)
+	}
+
+	return result
+}
+
 func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn map[string]string) func(Target) string {
 	return func(target Target) string {
 		// get target generated key
@@ -272,43 +338,8 @@ func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[strin
 			if !ok {
 
 			}
-			tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
-			tmpl_filename := path.Base(tmpl_filepath)
-			tmpl, err = template.New(tmpl_filename).Funcs(template.FuncMap{
-				"temp_dir": tpl_temp_dir(temp_dir),
-				"format": tpl_format(),
-			}).ParseFiles(tmpl_filepath)
-			if err != nil {
-				panic(err)
-			}
-			buf.Reset()
-			if err := tmpl.Execute(&buf, updated_target); err != nil {
-				panic(err)
-			}
-			var cli_file CLIFile;
-			err = yaml.Unmarshal(buf.Bytes(), &cli_file)
-			if err != nil {
-				log.Fatalf("Unmarshal3: %v", err)
-			}
-			src := ""
-			for _, blk := range cli_file.Spec["cmds"] {
-				if command, ok := blk["command"].(string); ok {
-					src += command
-					switch args := blk["args"].(type) {
-					case []interface {}:
-						for _, elem := range args {
-							src +=  " " + elem.(string)
-						}
-						src +=  ";"
-					default:
-						err := fmt.Sprintf("fetch do not support type %T!\n", args)
-						panic(err)
-					}
-				}
-				//if include, ok := blk["include"].(string); ok {
-				//
-				//}
-			}
+
+			src := rec_cmds(updated_target,repo_path,path.Join(tokens[1:]...),temp_dir)
 
 			file, _ := syntax.NewParser().Parse(strings.NewReader(src), "")
 

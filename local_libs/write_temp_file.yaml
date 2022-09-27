@@ -9,13 +9,7 @@ params:
     type: string
 spec:
   cmds:
-    - command: echo
-      args:
-        {{- with .Vars }}
-        - "\"{{ format .content }}\" > {{ temp_dir .filename }}"
-        {{- end }}
-    - command: echo
-      args:
-        {{- with .Vars }}
-        - {{ temp_dir .filename }}
-        {{- end }}
+    - include: write_file
+      vars:
+        filename: {{ temp_dir .Vars.filename }}
+        content: "{{ format .Vars.content }}"
