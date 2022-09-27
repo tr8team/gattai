@@ -1,14 +1,16 @@
 version: v1
 type: CommandLineInterface
 params:
-  identifier:
-    desc: The rds cluster identifier
-    requied: true
-    type: string
-  query:
-    desc: The rds cluster query
-    requied: true
-    type: string
+  required:
+    region:
+      desc: The regiion where the resource is at
+      type: string
+    identifier:
+      desc: The rds cluster identifier
+      type: string
+    query:
+      desc: The rds cluster query
+      type: string
 spec:
   #nix:
   #  package: aws-cli

@@ -1,18 +1,16 @@
 version: v1
 type: CommandLineInterface
 params:
-  identifier:
-    desc: The one password identifier
-    requied: true
-    type: string
-  label:
-    desc:
-    requied: true
-    type: string
-  vault:
-    desc:
-    requied: true
-    type: string
+  required:
+    identifier:
+      desc: The one password identifier
+      type: string
+    label:
+      desc: The one password label
+      type: string
+    vault:
+      desc: The one password vault
+      type: string
 spec:
   # what is this? 
   #environment:

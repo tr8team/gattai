@@ -1,18 +1,23 @@
 version: v1
 type: CommandLineInterface
 params:
-  name:
-    desc: The kube configmap name
-    requied: true
-    type: string
-  namespace:
-    desc: The kube configmap namespace
-    requied: true
-    type: string
-  from-file:
-    desc: Create kube configmap from file
-    requied: false
-    type: string
+  required:
+    name:
+      desc: The kube configmap name
+      type: string
+    namespace:
+      desc: The kube configmap namespace
+      type: string
+  optional:
+    from_file:
+      desc: Create kube configmap from file
+      type: string
+    from_env_file:
+      desc: Create kube configmap from envfile
+      type: string
+    from_literals:
+      desc: Create kube configmap from literals
+      type: map
 spec:
   test:
     - command: kubectl

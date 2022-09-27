@@ -40,7 +40,7 @@ type GattaiFile struct {
 type CLIFile struct {
 	Version string `yaml:"version"`
 	Type string `yaml:"type"`
-	Params map[string]interface{} `yaml:"params"`
+	Params map[string](map[string]interface{}) `yaml:"params"`
 	Spec map[string]interface{} `yaml:"spec"`
 }
 

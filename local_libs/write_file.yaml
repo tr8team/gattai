@@ -1,12 +1,13 @@
 version: v1
 type: CommandLineInterface
 params:
-  filename:
-    desc: The filename to save the content into
-    type: string
-  content:
-    desc: The content to be save if any
-    type: string
+  required:
+    filename:
+      desc: The filename to save the content into
+      type: string
+    content:
+      desc: The content to be save if any
+      type: string
 spec:
   cmds:
     - command: echo

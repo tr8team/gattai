@@ -1,14 +1,16 @@
 version: v1
 type: CommandLineInterface
 params:
-  identifier:
-    desc: The security grp identifier
-    requied: true
-    type: string
-  query:
-    desc: The security grp query
-    requied: true
-    type: string
+  required:
+    region:
+      desc: The regiion where the resource is at
+      type: string
+    filters:
+      desc: The security grp filters
+      type: map
+    query:
+      desc: The security grp query
+      type: string
 spec:
   #nix:
   #  package: aws-cli

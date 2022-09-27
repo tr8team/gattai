@@ -1,14 +1,16 @@
 version: v1
 type: CommandLineInterface
 params:
-  identifier:
-    desc: The elasticache replica grp identifier
-    requied: true
-    type: string
-  query:
-    desc: The elasticache replica grp query
-    requied: true
-    type: string
+  required:
+    region:
+      desc: The regiion where the resource is at
+      type: string
+    identifier:
+      desc: The elasticache replica grp identifier
+      type: string
+    query:
+      desc: The elasticache replica grp query
+      type: string
 spec:
   #nix:
   #  package: aws-cli
