@@ -8,10 +8,11 @@ import (
 	"path"
 	"time"
 	"bytes"
+	//"reflect"
 	"strings"
 	"context"
 	"runtime"
-	//"net/url"
+	"net/url"
 	"io/ioutil"
 	"text/template"
 	"gopkg.in/yaml.v2"
@@ -19,7 +20,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 	"github.com/spf13/cobra"
-	//"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5"
 	"github.com/tr8team/gattai/src/gattai-core"
 )
 
@@ -32,7 +33,7 @@ type GattaiFile struct {
     Version string `yaml:"version"`
     TempFolder string `yaml:"temp_folder"`
 	EnforceTargets map[string][]string `yaml:"enforce_targets"`
-	Repos map[string]map[string]string `yaml:"repos"`
+	Repos map[string](map[string]interface{}) `yaml:"repos"`
 	Targets map[string]map[string]Target `yaml:"targets"`
 }
 
@@ -49,6 +50,7 @@ func NewRunCommand() *cobra.Command {
 	var noEnforceTargets bool
 	var keepTempFiles bool
 	var destination string
+	var gitSSHKey string
 
 	runCmd := &cobra.Command{
 		Use:   "run <namespace> <target> [gattaifile_path]",
@@ -92,12 +94,63 @@ func NewRunCommand() *cobra.Command {
 			}
 
 			lookUpReturn := make(map[string]string)
-			// TODO: if url.ParseRequestURI(repo):
-			// download repo and return path
 			lookUpRepoPath := make(map[string]string)
+
 			for key, val := range gattaiFile.Repos {
-				if repo, ok := val["repo"];  ok  {
-					lookUpRepoPath[key] = repo
+				repo, ok := val["repo"].(string)
+				if ok == false {
+					log.Fatalln("Please provide a repo: type")
+				}
+				src, ok := val["src"]
+				if ok == false {
+					log.Fatalln("Please provide a src: map")
+				}
+				switch repo {
+				case "local":
+					switch srcMap := src.(type){
+					case map[interface{}]interface{}:
+						dir, ok := srcMap["dir"].(string)
+						if ok == false {
+							log.Fatalln("Please provide a dir: path")
+						}
+						fileInfo, err := os.Stat(dir)
+						if err != nil || fileInfo.IsDir() == false {
+							log.Fatalln("Please provide a directory for local repo!")
+						}
+						lookUpRepoPath[key] = dir
+					default:
+						log.Fatalln("Local repo require a dir: path!")
+					}
+				case "git":
+					switch srcMap := src.(type){
+					case map[interface{}]interface{}:
+						web_url, ok := srcMap["url"].(string)
+						if ok == false {
+						 log.Fatalln("Please provide a url: key")
+						}
+						_, err = url.ParseRequestURI(web_url)
+						if err != nil {
+							log.Fatalf("GIT repo parse request url error: %v", err)
+						}
+						repoDir, err := os.MkdirTemp("",key)
+						if err != nil {
+							log.Fatalf("Error creating repository folder: %v", err)
+						}
+						defer os.RemoveAll(repoDir) // clean up
+						_, err = git.PlainClone(repoDir, false, &git.CloneOptions{
+							URL:               web_url,
+							Progress: 		   os.Stdout,
+							//ReferenceName:			  rev
+						})
+						if err != nil {
+							log.Fatalf("Error cloning git repository: %v", err)
+						}
+						lookUpRepoPath[key] = repoDir
+					default:
+						log.Fatalln("Local repo require a dir: path!")
+					}
+				default:
+					log.Fatalln("Repo type is not supported!")
 				}
 			}
 
@@ -154,6 +207,7 @@ func NewRunCommand() *cobra.Command {
 	runCmd.Flags().BoolVarP(&noEnforceTargets, "no-enforce", "n", false, "Do not enforce target")
 	runCmd.Flags().BoolVarP(&keepTempFiles, "keep-temp", "k", false, "Keep temporary created files")
 	runCmd.Flags().StringVarP(&destination, "destination", "d", "", "Save to filepath")
+	runCmd.Flags().StringVarP(&gitSSHKey, "git-ssh-key", "g", "", "Private SSH key for git repo")
 
 	return runCmd
 }
@@ -291,8 +345,8 @@ func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[strin
 
 func tpl_format() func(string) string {
 	return func(content string) string {
-		token := strings.Split(content, "\n")
-		return strings.Join(token, "\\n")
+		new_content := strings.ReplaceAll(content, "\"","\\\"")
+		return strings.ReplaceAll(new_content, "\n","\\n")
 	}
 }
 

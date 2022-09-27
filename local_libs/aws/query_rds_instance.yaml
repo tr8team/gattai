@@ -10,9 +10,9 @@ params:
     requied: true
     type: string
 spec:
-  nix:
-    package: aws-cli
-    version: v1
+  #nix:
+  #  package: aws-cli
+  #  version: v1
   test:
     - command: aws
       args:

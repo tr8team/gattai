@@ -3,7 +3,7 @@ version: v1
 temp_folder: ./local_tmp
 
 enforce_targets:
-  staging:
+  dev:
     - STAGING_MYSQL_URL
     - STAGING_REDIS_URL
     - CLUSTER_SECGROUP_ID
@@ -12,10 +12,17 @@ enforce_targets:
 
 repos:
   local-src:
-    repo: local_libs
+    repo: local
+    src:
+      dir: local_libs
+  github-libs:
+    repo: git
+    src:
+      url: https://github.com/tr8team/gattai-libs.git
+      rev: v0.1.0
 
 targets:
-  staging:
+  dev:
     STAGING_MYSQL_URL:
       exec: local-src/aws/query_rds_cluster
       vars:
@@ -49,7 +56,7 @@ targets:
         filters:
           group-name: "*staging-systems-engineering-web-app*"
         query: GroupId
-    helm_value_file:
+    return:
       exec: local-src/write_temp_file
       vars:
         filename: values.yaml
@@ -57,21 +64,21 @@ targets:
           nginx:
             securityGroupPolicy:
               groupIds:
-                - {{ fetch .Targets.default.NGINX_POD_SECGROUP_ID }}
-                - {{ fetch .Targets.default.CLUSTER_SECGROUP_ID }}
+                - {{ fetch .Targets.dev.NGINX_POD_SECGROUP_ID }}
+                - {{ fetch .Targets.dev.CLUSTER_SECGROUP_ID }}
           phpfpm:
             envFile:
               name: envfile
               key: .env.remote-testing
             securityGroupPolicy:
               groupIds:
-                - {{ fetch .Targets.default.PHPFPM_POD_SECGROUP_ID }}
-                - {{ fetch .Targets.default.CLUSTER_SECGROUP_ID }}
+                - {{ fetch .Targets.dev.PHPFPM_POD_SECGROUP_ID }}
+                - {{ fetch .Targets.dev.CLUSTER_SECGROUP_ID }}
           mysql:
             enabled: false
             nameOverride: "transactional-database"
-            externalName: {{ fetch .Targets.default.STAGING_MYSQL_URL }}
+            externalName: {{ fetch .Targets.dev.STAGING_MYSQL_URL }}
           redis:
             enabled: false
             nameOverride: "cache"
-            externalName: {{ fetch .Targets.default.STAGING_REDIS_URL }}
+            externalName: {{ fetch .Targets.dev.STAGING_REDIS_URL }}
