@@ -1,0 +1,21 @@
+nginx:
+  securityGroupPolicy:
+    groupIds:
+      - sg-078975372beadead9
+      - sg-0c6dad4c01563c8d7
+phpfpm:
+  envFile:
+    name: envfile
+    key: .env.remote-testing
+  securityGroupPolicy:
+    groupIds:
+      - sg-006fabfd65b7db634
+      - sg-0c6dad4c01563c8d7
+mysql:
+  enabled: false
+  nameOverride: transactional-database
+  externalName: staging-systems-engineering-transactional-database.cluster-c9ilcrldgvqh.ap-southeast-1.rds.amazonaws.com
+redis:
+  enabled: false
+  nameOverride: cache
+  externalName: staging-systems-engineering-cache.f4kdxt.clustercfg.apse1.cache.amazonaws.com

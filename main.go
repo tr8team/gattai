@@ -21,6 +21,7 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 	"github.com/spf13/cobra"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/tr8team/gattai/src/gattai-core"
 )
 
@@ -136,11 +137,18 @@ func NewRunCommand() *cobra.Command {
 						if err != nil {
 							log.Fatalf("Error creating repository folder: %v", err)
 						}
+						var ref_name plumbing.ReferenceName
+						if branch, ok := srcMap["branch"].(string); ok {
+							ref_name = plumbing.NewBranchReferenceName(branch)
+						}
+						if tag, ok := srcMap["tag"].(string); ok {
+							ref_name = plumbing.NewTagReferenceName(tag)
+						}
 						defer os.RemoveAll(repoDir) // clean up
 						_, err = git.PlainClone(repoDir, false, &git.CloneOptions{
 							URL:               web_url,
 							Progress: 		   os.Stdout,
-							//ReferenceName:			  rev
+							ReferenceName:	   ref_name,
 						})
 						if err != nil {
 							log.Fatalf("Error cloning git repository: %v", err)

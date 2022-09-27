@@ -19,7 +19,7 @@ repos:
     repo: git
     src:
       url: https://github.com/tr8team/gattai-libs.git
-      rev: v0.1.0
+      branch: develop
 
 targets:
   dev:
