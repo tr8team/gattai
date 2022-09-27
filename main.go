@@ -37,7 +37,7 @@ type GattaiFile struct {
 	Targets map[string]map[string]Target `yaml:"targets"`
 }
 
-type CLIFile struct {
+type ActionFile struct {
 	Version string `yaml:"version"`
 	Type string `yaml:"type"`
 	Params map[string](map[string]interface{}) `yaml:"params"`
@@ -236,8 +236,8 @@ func NewRootCommand() *cobra.Command {
 	return rootCmd
 }
 
-func rec_cmds(updated_target Target,repo_path string, action_path string, temp_dir string) string {
-	tmpl_filepath := path.Join(repo_path,action_path) + ".yaml"
+func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_dir string) string {
+	tmpl_filepath := path.Join(repo_path,exec_path) + ".yaml"
 	tmpl_filename := path.Base(tmpl_filepath)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
 		"temp_dir": tpl_temp_dir(temp_dir),
@@ -250,15 +250,15 @@ func rec_cmds(updated_target Target,repo_path string, action_path string, temp_d
 	if err := tmpl.Execute(&buf, updated_target); err != nil {
 		panic(err)
 	}
-	var cli_file CLIFile;
+	var actionFile ActionFile;
 	//fmt.Printf("%s\n", buf.String())
-	err = yaml.Unmarshal(buf.Bytes(), &cli_file)
+	err = yaml.Unmarshal(buf.Bytes(), &actionFile)
 	if err != nil {
 		log.Fatalf("Unmarshal3: %v", err)
 	}
 
 	result := ""
-	switch cmds := cli_file.Spec["cmds"].(type){
+	switch cmds := actionFile.Spec["cmds"].(type){
 	case []interface{}:
 		for _, blk := range cmds {
 			switch blk_map := blk.(type) {
