@@ -26,6 +26,7 @@ import (
 
 type Target struct {
 	Exec string `yaml:"exec"`
+	RunTimeEnv string `yaml:"runtime_env"`
 	Vars map[string]interface{} `yaml:"vars"`
 }
 
@@ -48,6 +49,11 @@ type ActionFile struct {
 	Type string `yaml:"type"`
 	Params map[string](map[string]*Param) `yaml:"params"`
 	Spec map[string]interface{} `yaml:"spec"`
+}
+
+type RunTimeEnv struct {
+	Name string
+	Version string
 }
 
 func NewRunCommand() *cobra.Command {
@@ -232,9 +238,7 @@ func NewRootCommand() *cobra.Command {
 		Long: `gattai is a super fancy CLI (kidding)
 
 	One can use stringer to modify or inspect strings straight from the terminal`,
-		Run: func(cmd *cobra.Command, args []string) {
-
-		},
+		Run: func(cmd *cobra.Command, args []string) {},
 	}
 
 	rootCmd.AddCommand(NewRunCommand());
@@ -328,6 +332,25 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_dir
 		check_params(updated_target, required_params)
 	}
 
+	//switch rtEnv := actionFile.Spec["runtime_env"].(type){
+	//case map[interface{}]interface{}:
+	//	rtenv_remap := make(map[string]RunTimeEnv)
+	//	for key, val := range rtEnv {
+	//		key_id, _ := key.(string)
+	//		switch env_config := val.(type){
+	//		case map[interface{}]interface{}:
+	//			rtenv_remap[key_id] = RunTimeEnv{
+	//				Name: env_config["name"].(string),
+	//				Version: env_config["version"].(string),
+	//			}
+	//		default:
+	//			log.Fatalf("env config do not support type %T!\n", env_config)
+	//		}
+	//	}
+	//default:
+	//	log.Fatalf("runtime env do not support type %T!\n", rtEnv)
+	//}
+
 	result := ""
 	switch cmds := actionFile.Spec["cmds"].(type){
 	case []interface{}:
@@ -357,6 +380,7 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_dir
 						}
 						new_target := Target {
 							Exec: include_path,
+							RunTimeEnv: updated_target.RunTimeEnv,
 							Vars: vars_remap,
 						}
 						result += rec_cmds(new_target,repo_path, include_path, temp_dir)
