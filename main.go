@@ -37,10 +37,16 @@ type GattaiFile struct {
 	Targets map[string]map[string]Target `yaml:"targets"`
 }
 
+type Param struct {
+	Desc string `yaml:"desc"`
+	Type string `yaml:"type"`
+	Properties map[string](map[string]*Param) `yaml:"properties"`
+}
+
 type ActionFile struct {
 	Version string `yaml:"version"`
 	Type string `yaml:"type"`
-	Params map[string](map[string]interface{}) `yaml:"params"`
+	Params map[string](map[string]*Param) `yaml:"params"`
 	Spec map[string]interface{} `yaml:"spec"`
 }
 
@@ -236,7 +242,65 @@ func NewRootCommand() *cobra.Command {
 	return rootCmd
 }
 
+func val_type(item interface{}) string {
+	switch i_type := item.(type) {
+	case bool:
+		return "bool"
+	case int:
+		return "int"
+	case int8:
+		return "int"
+	case int16:
+		return "int"
+	case int32:
+		return "int"
+	case int64:
+		return "int"
+	case uint:
+		return "int"
+	case uint8:
+		return "int"
+	case uint16:
+		return "int"
+	case uint32:
+		return "int"
+	case uint64:
+		return "int"
+	case float32:
+		return "float"
+	case float64:
+		return "float"
+	case string:
+		return "string"
+	case []interface{}:
+		return "array"
+	case map[interface{}]interface{}:
+		return "object"
+	default:
+		log.Fatalf("Unsupported type: %T!\n", i_type)
+	}
+	return ""
+}
+
+func check_params(target Target,param_map map[string]*Param) {
+	for key, val := range param_map {
+		if var_item, ok := target.Vars[key]; ok {
+			var_type := val_type(var_item)
+			if val.Type == var_type {
+				if val.Type == "object" {
+					check_params(target,val.Properties["required"])
+				}
+			} else {
+				log.Fatalf("Invalid type for %s: %v, Expecting %v",key,var_type,val.Type)
+			}
+		} else {
+			log.Fatalf("Missing key %s, key is required!",key)
+		}
+	}
+}
+
 func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_dir string) string {
+
 	tmpl_filepath := path.Join(repo_path,exec_path) + ".yaml"
 	tmpl_filename := path.Base(tmpl_filepath)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
@@ -251,11 +315,14 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_dir
 		panic(err)
 	}
 	var actionFile ActionFile;
+
 	//fmt.Printf("%s\n", buf.String())
 	err = yaml.Unmarshal(buf.Bytes(), &actionFile)
 	if err != nil {
 		log.Fatalf("Unmarshal3: %v", err)
 	}
+
+	check_params(updated_target, actionFile.Params["required"])
 
 	result := ""
 	switch cmds := actionFile.Spec["cmds"].(type){
@@ -336,7 +403,7 @@ func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[strin
 			tokens := strings.Split(updated_target.Exec, "/")
 			repo_path, ok := lookUpRepoPath[tokens[0]]
 			if !ok {
-
+				log.Fatalln("Repo prefix does not exist!")
 			}
 
 			src := rec_cmds(updated_target,repo_path,path.Join(tokens[1:]...),temp_dir)

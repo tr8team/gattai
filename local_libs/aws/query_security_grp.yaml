@@ -7,7 +7,7 @@ params:
       type: string
     filters:
       desc: The security grp filters
-      type: map
+      type: object
     query:
       desc: The security grp query
       type: string
