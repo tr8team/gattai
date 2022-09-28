@@ -12,9 +12,15 @@ params:
       desc: The security grp query
       type: string
 spec:
-  #nix:
-  #  package: aws-cli
-  #  version: v1
+  runtime-env:
+    docker:
+      aws:
+        name: amazon/aws-cli
+        version: lastest
+    nix-shell:
+      aws:
+        name: aws
+        version: https://github.com/NixOS/nixpkgs/archive/bed08131cd29a85f19716d9351940bdc34834492.tar.gz
   test:
     - command: aws
       args:

@@ -17,8 +17,17 @@ params:
       type: string
     from_literals:
       desc: Create kube configmap from literals
-      type: map
+      type: object
 spec:
+  runtime-env:
+    docker:
+      kubectl:
+        name: bitnami/kubectl
+        version: lastest
+    nix-shell:
+      kubectl:
+        name: kubectl
+        version: https://github.com/NixOS/nixpkgs/archive/bf972dc380f36a3bf83db052380e55f0eaa7dcb6.tar.gz
   test:
     - command: kubectl
       args:
