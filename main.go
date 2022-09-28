@@ -288,7 +288,9 @@ func check_params(target Target,param_map map[string]*Param) {
 			var_type := val_type(var_item)
 			if val.Type == var_type {
 				if val.Type == "object" {
-					check_params(target,val.Properties["required"])
+					if required_params, ok := val.Properties["required"]; ok {
+						check_params(target,required_params)
+					}
 				}
 			} else {
 				log.Fatalf("Invalid type for %s: %v, Expecting %v",key,var_type,val.Type)
@@ -322,7 +324,9 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_dir
 		log.Fatalf("Unmarshal3: %v", err)
 	}
 
-	check_params(updated_target, actionFile.Params["required"])
+	if required_params, ok := actionFile.Params["required"]; ok {
+		check_params(updated_target, required_params)
+	}
 
 	result := ""
 	switch cmds := actionFile.Spec["cmds"].(type){
