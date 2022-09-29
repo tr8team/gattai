@@ -172,7 +172,7 @@ func NewRunCommand() *cobra.Command {
 				}
 			}
 
-			tempDir, err := os.MkdirTemp(gattaiFile.TempFolder, "gattai_tmp")
+			tempDir, err := os.MkdirTemp(gattaiFile.TempFolder, "gattaitmp")
 			if err != nil {
 				log.Fatalf("Error creating temporary folder: %v", err)
 			}
@@ -305,7 +305,7 @@ func check_params(target Target,param_map map[string]*Param) {
 	}
 }
 
-func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_dir string) string {
+func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_folder string, temp_dir string) string {
 
 	tmpl_filepath := path.Join(repo_path,exec_path) + ".yaml"
 	tmpl_filename := path.Base(tmpl_filepath)
@@ -332,42 +332,112 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_dir
 		check_params(updated_target, required_params)
 	}
 
-	//switch rtEnv := actionFile.Spec["runtime_env"].(type){
-	//case map[interface{}]interface{}:
-	//	rtenv_remap := make(map[string]RunTimeEnv)
-	//	for key, val := range rtEnv {
-	//		key_id, _ := key.(string)
-	//		switch env_config := val.(type){
-	//		case map[interface{}]interface{}:
-	//			rtenv_remap[key_id] = RunTimeEnv{
-	//				Name: env_config["name"].(string),
-	//				Version: env_config["version"].(string),
-	//			}
-	//		default:
-	//			log.Fatalf("env config do not support type %T!\n", env_config)
-	//		}
-	//	}
-	//default:
-	//	log.Fatalf("runtime env do not support type %T!\n", rtEnv)
-	//}
+	rtenv_map := make(map[string](map[string]RunTimeEnv))
 
-	result := ""
+	if rtEnv, ok := actionFile.Spec["runtime_env"]; ok {
+		switch rt_map := rtEnv.(type){
+		case map[interface{}]interface{}:
+			for rt_type, rt_val := range rt_map {
+				if rt_type_id, ok := rt_type.(string); ok {
+					rtenv_map[rt_type_id] = make(map[string]RunTimeEnv)
+					switch app_map := rt_val.(type){
+					case map[interface{}]interface{}:
+						for app_type, app_val := range app_map {
+							if app_type_id, ok := app_type.(string); ok {
+								switch cfg_map := app_val.(type){
+								case map[interface{}]interface{}:
+									var name, version string
+									if n, ok := cfg_map["name"].(string); ok {
+										name = n
+									}
+									if v, ok := cfg_map["version"].(string); ok {
+										version = v
+									}
+									rtenv_map[rt_type_id][app_type_id] = RunTimeEnv{
+										Name: name,
+										Version: version,
+									}
+								default:
+								}
+							}
+						}
+					default:
+					}
+				}
+			}
+		default:
+			log.Fatalf("runtime env do not support type %T!\n", rtEnv)
+		}
+	}
+
+	var result string
 	switch cmds := actionFile.Spec["cmds"].(type){
 	case []interface{}:
 		for _, blk := range cmds {
 			switch blk_map := blk.(type) {
 			case map[interface{}]interface{}:
 				if command, ok := blk_map["command"].(string); ok {
-					result += command
+					src := ""
 					switch args := blk_map["args"].(type) {
 					case []interface {}:
 						for _, elem := range args {
-							result +=  " " + elem.(string)
+							src +=  " " + elem.(string)
 						}
 					default:
 						log.Fatalf("fetch do not support type %T!\n", args)
 					}
-					result +=  ";"
+
+					switch updated_target.RunTimeEnv {
+					case "docker":
+						if docker, ok := rtenv_map["docker"]; ok {
+							if app_docker, ok :=  docker[command]; ok {
+								src = fmt.Sprintf("docker run -v %s:%s --rm %s:%s%s", temp_folder, path.Join("/app",temp_folder),app_docker.Name, app_docker.Version, src)
+							}
+						}
+					case "nix-shell":
+						if nix, ok := rtenv_map["nix_shell"]; ok {
+							src = command + src
+							if app_nix, ok :=  nix[command]; ok {
+							src = fmt.Sprintf("nix-shell -p %s -I nixpkgs=%s --command \"%s\"", app_nix.Name, app_nix.Version, src)
+							}
+						}
+					default:
+						src = command + src
+					}
+
+					//fmt.Println(src)
+
+					file, _ := syntax.NewParser().Parse(strings.NewReader(src), "")
+					open := func(ctx context.Context, path string, flag int, perm os.FileMode) (io.ReadWriteCloser, error) {
+						if runtime.GOOS == "windows" && path == "/dev/null" {
+							path = "NUL"
+						}
+						return interp.DefaultOpenHandler()(ctx, path, flag, perm)
+					}
+					exec := func(ctx context.Context, args []string) error {
+						hc := interp.HandlerCtx(ctx)
+						//if args[0] == "join" {
+						//	fmt.Fprintln(hc.Stdout, strings.Join(args[2:], args[1]))
+						//	return nil
+						//}
+						if _, err := interp.LookPathDir(hc.Dir, hc.Env, args[0]); err != nil {
+							fmt.Printf("%s is not installed\n", args[0])
+							return interp.NewExitStatus(1)
+						}
+						return interp.DefaultExecHandler(2*time.Second)(ctx, args)
+					}
+					buf.Reset()
+					runner, _ := interp.New(
+						//interp.Env(expand.ListEnviron("GLOBAL=global_value")),
+						interp.StdIO(nil, &buf, os.Stdout),
+						interp.OpenHandler(open),
+						interp.ExecHandler(exec),
+					)
+					err = runner.Run(context.TODO(), file)
+					if err != nil {
+						log.Fatalf("Run: %v", err)
+					}
+					result += buf.String()
 				}
 				if include_path, ok := blk_map["include"].(string); ok {
 					switch vars_map := blk_map["vars"].(type) {
@@ -383,7 +453,7 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_dir
 							RunTimeEnv: updated_target.RunTimeEnv,
 							Vars: vars_remap,
 						}
-						result += rec_cmds(new_target,repo_path, include_path, temp_dir)
+						result += rec_cmds(new_target,repo_path, include_path, temp_folder, temp_dir)
 					default:
 						log.Fatalf("fetch do not support type %T!\n", vars_map)
 					}
@@ -434,43 +504,7 @@ func tpl_fetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[strin
 				log.Fatalln("Repo prefix does not exist!")
 			}
 
-			src := rec_cmds(updated_target,repo_path,path.Join(tokens[1:]...),temp_dir)
-
-			file, _ := syntax.NewParser().Parse(strings.NewReader(src), "")
-
-			open := func(ctx context.Context, path string, flag int, perm os.FileMode) (io.ReadWriteCloser, error) {
-				if runtime.GOOS == "windows" && path == "/dev/null" {
-					path = "NUL"
-				}
-				return interp.DefaultOpenHandler()(ctx, path, flag, perm)
-			}
-			exec := func(ctx context.Context, args []string) error {
-				hc := interp.HandlerCtx(ctx)
-
-				//if args[0] == "join" {
-				//	fmt.Fprintln(hc.Stdout, strings.Join(args[2:], args[1]))
-				//	return nil
-				//}
-
-				if _, err := interp.LookPathDir(hc.Dir, hc.Env, args[0]); err != nil {
-					fmt.Printf("%s is not installed\n", args[0])
-					return interp.NewExitStatus(1)
-				}
-
-				return interp.DefaultExecHandler(2*time.Second)(ctx, args)
-			}
-			buf.Reset()
-			runner, _ := interp.New(
-				//interp.Env(expand.ListEnviron("GLOBAL=global_value")),
-				interp.StdIO(nil, &buf, os.Stdout),
-				interp.OpenHandler(open),
-				interp.ExecHandler(exec),
-			)
-			err = runner.Run(context.TODO(), file)
-			if err != nil {
-				log.Fatalf("Run: %v", err)
-			}
-			result = strings.TrimSpace(buf.String())
+			result = strings.TrimSpace(rec_cmds(updated_target,repo_path,path.Join(tokens[1:]...),gattai_file.TempFolder,temp_dir))
 			lookUpReturn[string(yamlTarget)] = result
 		}
 		return result

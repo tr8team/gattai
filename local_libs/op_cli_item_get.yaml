@@ -16,7 +16,7 @@ spec:
     docker:
       op:
         name: 1password/op
-        version: lastest
+        version: latest
     nix_shell:
       op:
         name: _1password

@@ -16,7 +16,7 @@ spec:
     docker:
       aws:
         name: amazon/aws-cli
-        version: lastest
+        version: latest
     nix_shell:
       aws:
         name: aws

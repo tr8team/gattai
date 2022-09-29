@@ -1,6 +1,6 @@
 version: v1
 
-temp_folder: ./local_tmp
+temp_folder: ./localtmp
 
 enforce_targets:
   dev:
@@ -15,28 +15,31 @@ repos:
     repo: local
     src:
       dir: local_libs
-  github-libs:
-    repo: git
-    src:
-      url: https://github.com/tr8team/gattai-libs.git
-      branch: develop
+  #github-libs:
+  #  repo: git
+  #  src:
+  #    url: https://github.com/tr8team/gattai-libs.git
+  #    branch: develop
 
 targets:
   dev:
     STAGING_MYSQL_URL:
       exec: local-src/aws/query_rds_cluster
+      runtime_env: nix_shell
       vars:
         region: ap-southeast-1
         identifier: staging-systems-engineering-transactional-database
         query: Endpoint
     STAGING_REDIS_URL:
       exec: local-src/aws/query_elasticache_replica_grp
+      runtime_env: nix_shell
       vars:
         region: ap-southeast-1
         identifier: staging-systems-engineering-cache
         query: ConfigurationEndpoint.Address
     CLUSTER_SECGROUP_ID:
       exec: local-src/aws/query_security_grp
+      runtime_env: nix_shell
       vars:
         region: ap-southeast-1
         filters:
@@ -44,6 +47,7 @@ targets:
         query: GroupId
     NGINX_POD_SECGROUP_ID:
       exec: local-src/aws/query_security_grp
+      runtime_env: nix_shell
       vars:
         region: ap-southeast-1
         filters:
@@ -51,12 +55,13 @@ targets:
         query: GroupId
     PHPFPM_POD_SECGROUP_ID:
       exec: local-src/aws/query_security_grp
+      runtime_env: nix_shell
       vars:
         region: ap-southeast-1
         filters:
           group-name: "*staging-systems-engineering-web-app*"
         query: GroupId
-    return:
+    create_file:
       exec: local-src/write_temp_file
       vars:
         filename: values.yaml
@@ -82,3 +87,10 @@ targets:
             enabled: false
             nameOverride: "cache"
             externalName: {{ fetch .Targets.dev.STAGING_REDIS_URL }}
+    return:
+      exec: local-src/k8s/configmap
+      runtime_env: nix_shell
+      vars:
+        name: envfile
+        namespace: default
+        from_file: "{{ fetch .Targets.dev.create_file }}"
