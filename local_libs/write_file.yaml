@@ -10,13 +10,14 @@ params:
       type: string
 spec:
   cmds:
-    - command: echo
-      args:
-        {{- with .Vars }}
-        - "\"{{ format .content }}\" > {{ .filename }}"
-        {{- end }}
-    - command: echo
-      args:
-        {{- with .Vars }}
-        - {{ .filename }}
-        {{- end }}
+    exec:
+      - command: echo
+        args:
+          {{- with .Vars }}
+          - "\"{{ format .content }}\" > {{ .filename }}"
+          {{- end }}
+      - command: echo
+        args:
+          {{- with .Vars }}
+          - {{ .filename }}
+          {{- end }}

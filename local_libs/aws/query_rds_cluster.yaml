@@ -17,27 +17,32 @@ spec:
       aws:
         name: aws
         version: https://github.com/NixOS/nixpkgs/archive/bed08131cd29a85f19716d9351940bdc34834492.tar.gz
-  test:
-    - command: aws
-      args:
-        {{- with .Vars }}
-        {{- with .region }}
-        - --region {{ . }}
-        {{- end }}
-        - rds describe-db-clusters
-        {{- end }}
   cmds:
-    - command: aws
-      args:
-        {{- with .Vars }}
-        {{- with .region }}
-        - --region {{ . }}
-        {{- end }}
-        - rds describe-db-clusters
-        {{- with .identifier }}
-        - --db-cluster-identifier {{ . }}
-        {{- end }}
-        {{- with .query }}
-        - --query "DBClusters[0].{{ . }}"
-        {{- end }}
-        {{- end }}
+    test:
+      - command: aws
+        args:
+          {{- with .Vars }}
+          {{- with .region }}
+          - --region {{ . }}
+          {{- end }}
+          - rds describe-db-clusters
+          {{- with .identifier }}
+          - --db-cluster-identifier {{ . }}
+          {{- end }}
+          {{- end }}
+          - "| jq '. | length'"
+    exec:
+      - command: aws
+        args:
+          {{- with .Vars }}
+          {{- with .region }}
+          - --region {{ . }}
+          {{- end }}
+          - rds describe-db-clusters
+          {{- with .identifier }}
+          - --db-cluster-identifier {{ . }}
+          {{- end }}
+          {{- with .query }}
+          - --query "DBClusters[0].{{ . }}"
+          {{- end }}
+          {{- end }}

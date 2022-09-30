@@ -11,6 +11,7 @@ import (
 	"strings"
 	"context"
 	"runtime"
+	"os/exec"
 	"net/url"
 	"io/ioutil"
 	"text/template"
@@ -305,6 +306,97 @@ func check_params(target Target,param_map map[string]*Param) {
 	}
 }
 
+func cmd_blk(blk interface{}) {
+	switch blk_map := blk.(type) {
+	case map[interface{}]interface{}:
+		if command, ok := blk_map["command"].(string); ok {
+			src := command
+			switch args := blk_map["args"].(type) {
+			case []interface {}:
+				for _, elem := range args {
+					src +=  " " + elem.(string)
+				}
+			default:
+				log.Fatalf("fetch do not support type %T!\n", args)
+			}
+
+			cmd := exec.Command(command)
+			_, err := cmd.Output()
+			if err != nil {
+				switch updated_target.RunTimeEnv {
+					//case "docker":
+					//	if docker, ok := rtenv_map["docker"]; ok {
+					//		if app_docker, ok :=  docker[command]; ok {
+					//			src = fmt.Sprintf("docker run --add-host=host.docker.internal:host-gateway --rm %s:%s%s",app_docker.Name, app_docker.Version, src)
+					//		}
+					//	}
+					case "nix_shell":
+						if nix, ok := rtenv_map["nix_shell"]; ok {
+							if app_nix, ok :=  nix[command]; ok {
+							src = fmt.Sprintf("nix-shell -p %s -I nixpkgs=%s --command \"%s\"", app_nix.Name, app_nix.Version, tpl_format()(src))
+							}
+						}
+					default:
+					}
+			}
+			//fmt.Println(src)
+
+			file, _ := syntax.NewParser().Parse(strings.NewReader(src), "")
+			open := func(ctx context.Context, path string, flag int, perm os.FileMode) (io.ReadWriteCloser, error) {
+				if runtime.GOOS == "windows" && path == "/dev/null" {
+					path = "NUL"
+				}
+				return interp.DefaultOpenHandler()(ctx, path, flag, perm)
+			}
+			exec := func(ctx context.Context, args []string) error {
+				hc := interp.HandlerCtx(ctx)
+				//if args[0] == "join" {
+				//	fmt.Fprintln(hc.Stdout, strings.Join(args[2:], args[1]))
+				//	return nil
+				//}
+				if _, err := interp.LookPathDir(hc.Dir, hc.Env, args[0]); err != nil {
+					fmt.Printf("%s is not installed\n", args[0])
+					return interp.NewExitStatus(1)
+				}
+				return interp.DefaultExecHandler(2*time.Second)(ctx, args)
+			}
+			buf.Reset()
+			runner, _ := interp.New(
+				//interp.Env(expand.ListEnviron("GLOBAL=global_value")),
+				interp.StdIO(os.Stdin, &buf, os.Stdout),
+				interp.OpenHandler(open),
+				interp.ExecHandler(exec),
+			)
+			err = runner.Run(context.TODO(), file)
+			if err != nil {
+				log.Fatalf("Run: %v", err)
+			}
+			result += buf.String()
+		}
+		if include_path, ok := blk_map["include"].(string); ok {
+			switch vars_map := blk_map["vars"].(type) {
+			case map[interface{}]interface{}:
+				vars_remap := make(map[string]interface{})
+				for key, val := range vars_map {
+					if key_id, ok := key.(string); ok {
+						vars_remap[key_id] = val
+					}
+				}
+				new_target := Target {
+					Exec: include_path,
+					RunTimeEnv: updated_target.RunTimeEnv,
+					Vars: vars_remap,
+				}
+				result += rec_cmds(new_target,repo_path, include_path, temp_folder, temp_dir)
+			default:
+				log.Fatalf("fetch do not support type %T!\n", vars_map)
+			}
+		}
+	default:
+		log.Fatalf("fetch do not support type %T!\n", blk_map)
+	}
+}
+
 func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_folder string, temp_dir string) string {
 
 	tmpl_filepath := path.Join(repo_path,exec_path) + ".yaml"
@@ -370,6 +462,13 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_fol
 		}
 	}
 
+	switch test := actionFile.Spec["test"].(type){
+	case []interface{}:
+
+	default:
+		log.Fatalf("fetch do not support type %T!\n", test)
+	}
+
 	var result string
 	switch cmds := actionFile.Spec["cmds"].(type){
 	case []interface{}:
@@ -377,7 +476,7 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_fol
 			switch blk_map := blk.(type) {
 			case map[interface{}]interface{}:
 				if command, ok := blk_map["command"].(string); ok {
-					src := ""
+					src := command
 					switch args := blk_map["args"].(type) {
 					case []interface {}:
 						for _, elem := range args {
@@ -387,24 +486,25 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_fol
 						log.Fatalf("fetch do not support type %T!\n", args)
 					}
 
-					switch updated_target.RunTimeEnv {
-					//case "docker":
-					//	if docker, ok := rtenv_map["docker"]; ok {
-					//		if app_docker, ok :=  docker[command]; ok {
-					//			src = fmt.Sprintf("docker run --add-host=host.docker.internal:host-gateway --rm %s:%s%s",app_docker.Name, app_docker.Version, src)
-					//		}
-					//	}
-					case "nix-shell":
-						if nix, ok := rtenv_map["nix_shell"]; ok {
-							src = command + src
-							if app_nix, ok :=  nix[command]; ok {
-							src = fmt.Sprintf("nix-shell -p %s -I nixpkgs=%s --command \"%s\"", app_nix.Name, app_nix.Version, src)
+					cmd := exec.Command(command)
+					_, err := cmd.Output()
+					if err != nil {
+						switch updated_target.RunTimeEnv {
+							//case "docker":
+							//	if docker, ok := rtenv_map["docker"]; ok {
+							//		if app_docker, ok :=  docker[command]; ok {
+							//			src = fmt.Sprintf("docker run --add-host=host.docker.internal:host-gateway --rm %s:%s%s",app_docker.Name, app_docker.Version, src)
+							//		}
+							//	}
+							case "nix_shell":
+								if nix, ok := rtenv_map["nix_shell"]; ok {
+									if app_nix, ok :=  nix[command]; ok {
+									src = fmt.Sprintf("nix-shell -p %s -I nixpkgs=%s --command \"%s\"", app_nix.Name, app_nix.Version, tpl_format()(src))
+									}
+								}
+							default:
 							}
-						}
-					default:
-						src = command + src
 					}
-
 					//fmt.Println(src)
 
 					file, _ := syntax.NewParser().Parse(strings.NewReader(src), "")
@@ -429,7 +529,7 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_fol
 					buf.Reset()
 					runner, _ := interp.New(
 						//interp.Env(expand.ListEnviron("GLOBAL=global_value")),
-						interp.StdIO(nil, &buf, os.Stdout),
+						interp.StdIO(os.Stdin, &buf, os.Stdout),
 						interp.OpenHandler(open),
 						interp.ExecHandler(exec),
 					)

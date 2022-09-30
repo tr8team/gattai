@@ -10,7 +10,8 @@ params:
       type: string
 spec:
   cmds:
-    - include: write_file
-      vars:
-        filename: {{ temp_dir .Vars.filename }}
-        content: "{{ format .Vars.content }}"
+    exec:
+      - include: write_file
+        vars:
+          filename: {{ temp_dir .Vars.filename }}
+          content: "{{ format .Vars.content }}"

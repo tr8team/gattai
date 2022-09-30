@@ -10,8 +10,9 @@ params:
       type: string
 spec:
   cmds:
-    - command: echo
-      args:
-        {{- with .Vars }}
-        - "\"{{ format .content }}\""
-        {{- end }}
+    exec:
+      - command: echo
+        args:
+          {{- with .Vars }}
+          - "\"{{ format .content }}\""
+          {{- end }}

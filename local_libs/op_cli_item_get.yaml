@@ -16,20 +16,28 @@ spec:
     nix_shell:
       op:
         name: _1password
-        version: https://github.com/NixOS/nixpkgs/archive/6d02a514db95d3179f001a5a204595f17b89cb32.tar.gz
-  #test:
-  #  - command:
+        version: https://github.com/NixOS/nixpkgs/archive/ee01de29d2f58d56b1be4ae24c24bd91c5380cea.tar.gz
   cmds:
-    - command: op
-      args:
-        {{- with .Vars }}
-        {{- with .identifier }}
-        - item get "{{ . }}"
-        {{- end }}
-        {{- with .label }}
-        - --fields label={{ . }}
-        {{- end }}
-        {{- with .vault }}
-        - --vault {{ . }}
-        {{- end }}
-        {{- end }}
+    test:
+      - command: op
+        args:
+          {{- with .Vars }}
+          - item list
+          {{- with .identifier }}
+          - "| grep \"{{ . }}\" | wc -l"
+          {{- end }}
+          {{- end }}
+    exec:
+      - command: op
+        args:
+          {{- with .Vars }}
+          {{- with .identifier }}
+          - item get "{{ . }}"
+          {{- end }}
+          {{- with .label }}
+          - --fields label={{ . }}
+          {{- end }}
+          {{- with .vault }}
+          - --vault {{ . }}
+          {{- end }}
+          {{- end }}

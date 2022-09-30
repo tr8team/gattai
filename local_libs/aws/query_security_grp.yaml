@@ -17,30 +17,38 @@ spec:
       aws:
         name: aws
         version: https://github.com/NixOS/nixpkgs/archive/bed08131cd29a85f19716d9351940bdc34834492.tar.gz
-  test:
-    - command: aws
-      args:
-        {{- with .Vars }}
-        {{- with .region }}
-        - --region {{ . }}
-        {{- end }}
-        - ec2 describe-security-groups
-        {{- end }}
   cmds:
-    - command: aws
-      args:
-        {{- with .Vars }}
-        {{- with .region }}
-        - --region {{ . }}
-        {{- end }}
-        - ec2 describe-security-groups
-        {{- with .filters }}
-        - --filters
-        {{- range $key, $val := . }}
-        - Name={{ $key }},Values="{{ $val }}"
-        {{- end }}
-        {{- end }}
-        {{- with .query }}
-        - --query "SecurityGroups[0].{{ . }}"
-        {{- end }}
-        {{- end }}
+    test:
+      - command: aws
+        args:
+          {{- with .Vars }}
+          {{- with .region }}
+          - --region {{ . }}
+          {{- end }}
+          - ec2 describe-security-groups
+          {{- with .filters }}
+          - --filters
+          {{- range $key, $val := . }}
+          - Name={{ $key }},Values="{{ $val }}"
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          - "| jq '. | length'"
+    exec:
+      - command: aws
+        args:
+          {{- with .Vars }}
+          {{- with .region }}
+          - --region {{ . }}
+          {{- end }}
+          - ec2 describe-security-groups
+          {{- with .filters }}
+          - --filters
+          {{- range $key, $val := . }}
+          - Name={{ $key }},Values="{{ $val }}"
+          {{- end }}
+          {{- end }}
+          {{- with .query }}
+          - --query "SecurityGroups[0].{{ . }}"
+          {{- end }}
+          {{- end }}
