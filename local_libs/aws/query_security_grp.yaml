@@ -13,10 +13,6 @@ params:
       type: string
 spec:
   runtime_env:
-    docker:
-      aws:
-        name: amazon/aws-cli
-        version: latest
     nix_shell:
       aws:
         name: aws

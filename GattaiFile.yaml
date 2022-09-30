@@ -89,7 +89,6 @@ targets:
             externalName: {{ fetch .Targets.dev.STAGING_REDIS_URL }}
     return:
       exec: local-src/k8s/configmap
-      runtime_env: nix_shell
       vars:
         name: envfile
         namespace: default

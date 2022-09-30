@@ -20,10 +20,6 @@ params:
       type: object
 spec:
   runtime_env:
-    docker:
-      kubectl:
-        name: rancher/kubectl
-        version: v1.23.7-arm64
     nix_shell:
       kubectl:
         name: kubectl

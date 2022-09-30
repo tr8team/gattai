@@ -13,10 +13,6 @@ params:
       type: string
 spec:
   runtime_env:
-    docker:
-      op:
-        name: 1password/op
-        version: latest
     nix_shell:
       op:
         name: _1password

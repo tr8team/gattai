@@ -388,12 +388,12 @@ func rec_cmds(updated_target Target,repo_path string, exec_path string, temp_fol
 					}
 
 					switch updated_target.RunTimeEnv {
-					case "docker":
-						if docker, ok := rtenv_map["docker"]; ok {
-							if app_docker, ok :=  docker[command]; ok {
-								src = fmt.Sprintf("docker run -v %s:%s --rm %s:%s%s", temp_folder, path.Join("/app",temp_folder),app_docker.Name, app_docker.Version, src)
-							}
-						}
+					//case "docker":
+					//	if docker, ok := rtenv_map["docker"]; ok {
+					//		if app_docker, ok :=  docker[command]; ok {
+					//			src = fmt.Sprintf("docker run --add-host=host.docker.internal:host-gateway --rm %s:%s%s",app_docker.Name, app_docker.Version, src)
+					//		}
+					//	}
 					case "nix-shell":
 						if nix, ok := rtenv_map["nix_shell"]; ok {
 							src = command + src
