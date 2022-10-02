@@ -1,5 +1,5 @@
 version: v1
-type: CommandLineInterface
+type: WrapperInterface
 params:
   required:
     filename:
@@ -9,9 +9,8 @@ params:
       desc: The content to be save if any
       type: string
 spec:
-  cmds:
-    exec:
-      - include: write_file
-        vars:
-          filename: {{ temp_dir .Vars.filename }}
-          content: "{{ format .Vars.content }}"
+  include:
+    action: write_file
+    vars:
+      filename: {{ temp_dir .Vars.filename }}
+      content: "{{ format .Vars.content }}"

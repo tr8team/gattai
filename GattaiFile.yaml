@@ -24,45 +24,40 @@ repos:
 targets:
   dev:
     STAGING_MYSQL_URL:
-      exec: local-src/aws/query_rds_cluster
-      runtime_env: nix_shell
+      action: local-src/aws/query_rds_cluster
       vars:
         region: ap-southeast-1
         identifier: staging-systems-engineering-transactional-database
         query: Endpoint
     STAGING_REDIS_URL:
-      exec: local-src/aws/query_elasticache_replica_grp
-      runtime_env: nix_shell
+      action: local-src/aws/query_elasticache_replica_grp
       vars:
         region: ap-southeast-1
         identifier: staging-systems-engineering-cache
         query: ConfigurationEndpoint.Address
     CLUSTER_SECGROUP_ID:
-      exec: local-src/aws/query_security_grp
-      runtime_env: nix_shell
+      action: local-src/aws/query_security_grp
       vars:
         region: ap-southeast-1
         filters:
           group-name: "*staging-main-eks_cluster*"
         query: GroupId
     NGINX_POD_SECGROUP_ID:
-      exec: local-src/aws/query_security_grp
-      runtime_env: nix_shell
+      action: local-src/aws/query_security_grp
       vars:
         region: ap-southeast-1
         filters:
           group-name: "*staging-systems-engineering-frontend*"
         query: GroupId
     PHPFPM_POD_SECGROUP_ID:
-      exec: local-src/aws/query_security_grp
-      runtime_env: nix_shell
+      action: local-src/aws/query_security_grp
       vars:
         region: ap-southeast-1
         filters:
           group-name: "*staging-systems-engineering-web-app*"
         query: GroupId
     create_file:
-      exec: local-src/write_temp_file
+      action: local-src/write_temp_file
       vars:
         filename: values.yaml
         content: |
@@ -88,7 +83,7 @@ targets:
             nameOverride: "cache"
             externalName: {{ fetch .Targets.dev.STAGING_REDIS_URL }}
     return:
-      exec: local-src/k8s/configmap
+      action: local-src/k8s/configmap
       vars:
         name: envfile
         namespace: default

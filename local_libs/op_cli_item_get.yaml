@@ -17,8 +17,11 @@ spec:
       op:
         name: _1password
         version: https://github.com/NixOS/nixpkgs/archive/ee01de29d2f58d56b1be4ae24c24bd91c5380cea.tar.gz
-  cmds:
-    test:
+  test:
+    expected:
+      condition: equal
+      value: 1
+    cmds:
       - command: op
         args:
           {{- with .Vars }}
@@ -27,7 +30,8 @@ spec:
           - "| grep \"{{ . }}\" | wc -l"
           {{- end }}
           {{- end }}
-    exec:
+  exec:
+    cmds:
       - command: op
         args:
           {{- with .Vars }}

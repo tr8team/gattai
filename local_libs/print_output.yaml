@@ -9,8 +9,8 @@ params:
       desc: The content to be save if any
       type: string
 spec:
-  cmds:
-    exec:
+  exec:
+    cmds:
       - command: echo
         args:
           {{- with .Vars }}

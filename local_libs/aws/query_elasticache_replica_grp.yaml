@@ -17,8 +17,11 @@ spec:
       aws:
         name: aws
         version: https://github.com/NixOS/nixpkgs/archive/bed08131cd29a85f19716d9351940bdc34834492.tar.gz
-  cmds:
-    test:
+  test:
+    expected:
+      condition: equal
+      value: 1
+    cmds:
       - command: aws
         args:
           {{- with .Vars }}
@@ -31,7 +34,8 @@ spec:
           {{- end }}
           {{- end }}
           - "| jq '. | length'"
-    exec:
+  exec:
+    cmds:
       - command: aws
         args:
           {{- with .Vars }}
