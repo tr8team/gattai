@@ -7,3 +7,7 @@ import (
 type WrapperInterfaceSpec struct {
 	Include common.Target `yaml:"include"`
 }
+
+func RunWrap(*ActionArgs) string {
+	return ""
+}

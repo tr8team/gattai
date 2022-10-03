@@ -105,3 +105,11 @@ func RunCmdBlks(cmds []CmdBlock) string {
 
 	return result
 }
+
+func ExecCLI(*ActionArgs) string {
+	return ""
+}
+
+// func TestCmds() string {
+
+// }

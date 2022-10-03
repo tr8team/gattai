@@ -1,6 +1,7 @@
 package action
 
 import (
+	//"fmt"
 	"log"
 	"path"
 	"bytes"
@@ -45,6 +46,12 @@ type Params struct {
 	Optional map[string]*Param `yaml:"optional"`
 }
 
+type ActionArgs struct {
+	RepoPath string
+	TempDir string
+	SpecMap map[string](func(*ActionArgs)string)
+}
+
 func ValType(item interface{}) string {
 
 	switch i_type := item.(type) {
@@ -86,6 +93,19 @@ func ValType(item interface{}) string {
 	return ""
 }
 
+func  NewSpec[T any](actionFile ActionFile) *T {
+	newSpec := new(T)
+	yamlSpec, err := yaml.Marshal(actionFile.Spec)
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(yamlSpec, newSpec)
+	if err != nil {
+		log.Fatalf("Unmarshal4 newSpec: %v", err)
+	}
+	return newSpec
+}
+
 func (actionFile ActionFile) CheckParams(target common.Target) {
 	check_params_rec(target, actionFile.Params)
 }
@@ -119,12 +139,12 @@ func check_params_rec(target common.Target,params Params) {
 	}
 }
 
-func RecAction(updated_target common.Target,repo_path string, exec_filename string, temp_dir string) string {
+func RunAction(updated_target common.Target, exec_filename string, action_args *ActionArgs) string {
 
-	tmpl_filepath := path.Join(repo_path,exec_filename) + ".yaml"
+	tmpl_filepath := path.Join(action_args.RepoPath,exec_filename) + ".yaml"
 	tmpl_filename := path.Base(tmpl_filepath)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
-		"temp_dir": TplTempDir(temp_dir),
+		"temp_dir": TplTempDir(action_args.TempDir),
 		"format": TplFormat(),
 	}).ParseFiles(tmpl_filepath)
 	if err != nil {
@@ -151,18 +171,9 @@ func RecAction(updated_target common.Target,repo_path string, exec_filename stri
 	actionFile.CheckParams(updated_target)
 	var result string
 
-	yamlSpec, err := yaml.Marshal(actionFile.Spec)
-	if err != nil {
-		panic(err)
-	}
-
 	switch actionFile.Type {
 	case CLISpec:
-		var cliSpec CommandLineInteraceSpec
-		err = yaml.Unmarshal(yamlSpec, &cliSpec)
-		if err != nil {
-			log.Fatalf("Unmarshal4 CLISpec: %v", err)
-		}
+		cliSpec := NewSpec[CommandLineInteraceSpec](actionFile)
 
 		//rtenv_map := cliSpec.RunTimeEnv
 
@@ -209,12 +220,8 @@ func RecAction(updated_target common.Target,repo_path string, exec_filename stri
 		result += RunCmdBlks(cliSpec.Exec.Cmds)
 
 	case WrapSpec:
-		var wrapSpec WrapperInterfaceSpec
-		err = yaml.Unmarshal(yamlSpec, &wrapSpec)
-		if err != nil {
-			log.Fatalf("Unmarshal4 wrapSpec: %v", err)
-		}
-		result += RecAction(wrapSpec.Include,repo_path, wrapSpec.Include.Action, temp_dir)
+		wrapSpec := NewSpec[WrapperInterfaceSpec](actionFile)
+		result += RunAction(wrapSpec.Include,wrapSpec.Include.Action,action_args)
 	default:
 		log.Fatalf("Action file type is not supported: %s!", actionFile.Type)
 	}
