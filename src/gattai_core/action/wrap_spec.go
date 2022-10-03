@@ -8,6 +8,7 @@ type WrapperInterfaceSpec struct {
 	Include common.Target `yaml:"include"`
 }
 
-func RunWrap(*ActionArgs) string {
-	return ""
+func RedirectWrap(updated_target common.Target,actionFile ActionFile,action_args *ActionArgs) string {
+	wrapSpec := NewSpec[WrapperInterfaceSpec](actionFile)
+	return RunAction(wrapSpec.Include,wrapSpec.Include.Action,action_args)
 }

@@ -2,14 +2,19 @@ package core
 
 import (
 	"os"
-	"fmt"
+	//"fmt"
 	"log"
 	"net/url"
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/tr8team/gattai/src/gattai_core/action"
 	"github.com/tr8team/gattai/src/gattai_core/common"
+)
+
+const (
+	Version1 string = "v1"
 )
 
 const (
@@ -76,14 +81,10 @@ func (gattaiFile GattaiFile) CheckEnforceTargets() {
 	}
 }
 
-func (gattaiFile GattaiFile) CreateTempDir(keep_temp_files bool) string {
+func (gattaiFile GattaiFile) CreateTempDir() string {
 	tempDir, err := os.MkdirTemp(gattaiFile.TempFolder, GattaiTmpFolder)
 	if err != nil {
 		log.Fatalf("Error creating temporary folder: %v", err)
-	}
-	if keep_temp_files == false {
-		fmt.Println("Clean up temp files!")
-		defer os.RemoveAll(tempDir) // clean up
 	}
 	return tempDir
 }
@@ -139,5 +140,48 @@ func (gattaiFile GattaiFile) BuildRepoMap() map[string]string {
 		}
 	}
 
+	return result
+}
+
+func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,specMap map[string]action.ActionFunc) string {
+	var result string
+
+	lookUpRepoPath := gattaiFile.BuildRepoMap()
+	lookUpReturn := make(map[string]string)
+
+	switch namespace_id {
+	case AllNamespaces:
+		switch  target_id {
+		case AllTargets:
+			// all namespaces and all targets
+			for _, targets := range gattaiFile.Targets {
+				for _, target := range targets {
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn,specMap)(target)
+				}
+			}
+		default:
+			// all namespaces and a single target
+			for _, targets := range gattaiFile.Targets {
+				if target, ok := targets[target_id]; ok {
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn,specMap)(target)
+				}
+			}
+		}
+	default:
+		if targets , ok := gattaiFile.Targets[namespace_id]; ok {
+			switch  target_id {
+			case AllTargets:
+				// a single namespace and all targets
+				for _, target := range targets {
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn,specMap)(target)
+				}
+			default:
+				// a single namespace and a single target
+				if target, ok := targets[target_id]; ok {
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn,specMap)(target)
+				}
+			}
+		}
+	}
 	return result
 }

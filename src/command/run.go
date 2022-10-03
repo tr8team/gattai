@@ -1,14 +1,17 @@
 package command
 
 import (
+	"os"
 	"fmt"
+	"log"
 	"github.com/spf13/cobra"
 	"github.com/tr8team/gattai/src/gattai_core"
+	"github.com/tr8team/gattai/src/gattai_core/action"
 )
 
 func NewRunCommand() *cobra.Command {
 
-	var noEnforceTargets bool
+	var enforceTargets bool
 	var keepTempFiles bool
 
 	runCmd := &cobra.Command{
@@ -29,57 +32,30 @@ func NewRunCommand() *cobra.Command {
 
 			gattaiFile := core.NewGattaiFile(gattaifile_path)
 
-			if noEnforceTargets == false {
+			if gattaiFile.Version != core.Version1 {
+				log.Fatalf("Gattai version not supported: %T=v!\n", gattaiFile.Version)
+			}
+
+			if enforceTargets {
 				gattaiFile.CheckEnforceTargets()
 			}
 
-			lookUpRepoPath := gattaiFile.BuildRepoMap()
-
-			tempDir := gattaiFile.CreateTempDir(keepTempFiles)
-
-			lookUpReturn := make(map[string]string)
-			switch namespace_id {
-			case core.AllNamespaces:
-				switch  target_id {
-				case core.AllTargets:
-					// all namespaces and all targets
-					for _, targets := range gattaiFile.Targets {
-						for _, target := range targets {
-							result := core.TplFetch(*gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
-							fmt.Println(result)
-						}
-					}
-				default:
-					// all namespaces and a single target
-					for _, targets := range gattaiFile.Targets {
-						if target, ok := targets[target_id]; ok {
-							result := core.TplFetch(*gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
-							fmt.Println(result)
-						}
-					}
-				}
-			default:
-				if targets , ok := gattaiFile.Targets[namespace_id]; ok {
-					switch  target_id {
-					case core.AllTargets:
-						// a single namespace and all targets
-						for _, target := range targets {
-							result := core.TplFetch(*gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
-							fmt.Println(result)
-						}
-					default:
-						// a single namespace and a single target
-						if target, ok := targets[target_id]; ok {
-							result := core.TplFetch(*gattaiFile,tempDir,lookUpRepoPath,lookUpReturn)(target)
-							fmt.Println(result)
-						}
-					}
-				}
+			tempDir := gattaiFile.CreateTempDir()
+			if keepTempFiles == false {
+				fmt.Println("Clean up temp files!")
+				defer os.RemoveAll(tempDir) // clean up
 			}
+
+			result := gattaiFile.LookupTargets(namespace_id, target_id, tempDir,map[string]action.ActionFunc{
+				action.ActionVerKey(action.CLISpec, action.Version1): action.ExecCLI,
+				action.ActionVerKey(action.WrapSpec, action.Version1): action.RedirectWrap,
+			})
+
+			fmt.Println(result)
 		},
 	}
 
-	runCmd.Flags().BoolVarP(&noEnforceTargets, "no-enforce", "n", false, "Do not enforce target")
+	runCmd.Flags().BoolVarP(&enforceTargets, "enforce", "e", false, "Run enforce target")
 	runCmd.Flags().BoolVarP(&keepTempFiles, "keep-temp", "k", false, "Keep temporary created files")
 
 	return runCmd

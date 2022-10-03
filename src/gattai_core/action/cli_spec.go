@@ -7,12 +7,14 @@ import (
 	"log"
 	"time"
 	"bytes"
+	"strconv"
 	"strings"
 	"context"
 	"runtime"
 	//"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
+	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
 const (
@@ -106,10 +108,60 @@ func RunCmdBlks(cmds []CmdBlock) string {
 	return result
 }
 
-func ExecCLI(*ActionArgs) string {
-	return ""
+func ExpectedTest(expected string, cliSpec CommandLineInteraceSpec) bool {
+	result := false
+	switch cliSpec.Test.Expected.Condition {
+	case CmpEqual:
+		result = (strings.TrimSpace(expected) == strings.TrimSpace(cliSpec.Test.Expected.Value))
+		fmt.Println(result)
+	case CmpNotEqual:
+		result = (strings.TrimSpace(expected) != strings.TrimSpace(cliSpec.Test.Expected.Value))
+	case CmpContain:
+		result = strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(cliSpec.Test.Expected.Value))
+	case CmpNotContain:
+		result =!strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(cliSpec.Test.Expected.Value))
+	case CmpIntLessThan:
+		exp_int, err := strconv.Atoi(expected)
+		if  err != nil {
+			log.Fatalf("Error converting to integer: %s\n", expected)
+		}
+		exp_val, err := strconv.Atoi(cliSpec.Test.Expected.Value)
+		if  err != nil {
+			log.Fatalf("Error converting to integer: %s\n", cliSpec.Test.Expected.Value)
+		}
+		result = (exp_int < exp_val)
+	case CmpIntMoreThan:
+		exp_int, err := strconv.Atoi(expected)
+		if  err != nil {
+			log.Fatalf("Error converting to integer: %s\n", expected)
+		}
+		exp_val, err := strconv.Atoi(cliSpec.Test.Expected.Value)
+		if  err != nil {
+			log.Fatalf("Error converting to integer: %s\n", cliSpec.Test.Expected.Value)
+		}
+		result = (exp_int > exp_val)
+	default:
+		log.Fatalf("Condition is not supported: %s\n", cliSpec.Test.Expected.Condition)
+	}
+	return result
 }
 
-// func TestCmds() string {
+func ExecCLI(updated_target common.Target,actionFile ActionFile,action_args *ActionArgs) string {
+	cliSpec := NewSpec[CommandLineInteraceSpec](actionFile)
+	return RunCmdBlks(cliSpec.Exec.Cmds)
+}
 
-// }
+func TestCLI(updated_target common.Target,actionFile ActionFile,action_args *ActionArgs) string {
+	cliSpec := NewSpec[CommandLineInteraceSpec](actionFile)
+	if len(cliSpec.Test.Cmds) > 0 {
+		expected := RunCmdBlks(cliSpec.Test.Cmds)
+		if ExpectedTest(expected,*cliSpec) {
+			log.Printf("%s: Test Passed!\n",updated_target.Action)
+		} else {
+			log.Fatalf("%s: Test Failed! Expecting %s, Got %s\n",updated_target.Action,cliSpec.Test.Expected.Value,expected)
+		}
+	} else {
+		log.Printf("%s: No Test Found!\n",updated_target.Action)
+	}
+	return RunCmdBlks(cliSpec.Exec.Cmds)
+}

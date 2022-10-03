@@ -17,7 +17,7 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
-func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn map[string]string) func(common.Target) string {
+func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn map[string]string,specMap map[string]action.ActionFunc) func(common.Target) string {
 	return func(target common.Target) string {
 		// get target generated key
 		yamlTarget, err := yaml.Marshal(target)
@@ -30,7 +30,7 @@ func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string
 		if !ok {
 			// if not, parse target to see if target have dependency
 			tmpl, err := template.New("").Funcs(template.FuncMap{
-				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,lookUpReturn),
+				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,lookUpReturn,specMap),
 			}).Parse(string(yamlTarget))
 			if err != nil {
 				panic(err)
@@ -54,10 +54,7 @@ func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string
 			result = strings.TrimSpace(action.RunAction(updated_target,path.Join(tokens[1:]...),&action.ActionArgs{
 				RepoPath: repo_path,
 				TempDir: temp_dir,
-				SpecMap: map[string]func(*action.ActionArgs) string{
-					action.CLISpec: action.ExecCLI,
-					action.WrapSpec: action.RunWrap,
-				},
+				SpecMap: specMap,
 			}))
 			lookUpReturn[string(yamlTarget)] = result
 		}

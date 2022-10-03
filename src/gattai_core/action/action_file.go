@@ -46,10 +46,16 @@ type Params struct {
 	Optional map[string]*Param `yaml:"optional"`
 }
 
+type ActionFunc func(common.Target,ActionFile,*ActionArgs)string
+
 type ActionArgs struct {
 	RepoPath string
 	TempDir string
-	SpecMap map[string](func(*ActionArgs)string)
+	SpecMap map[string]ActionFunc
+}
+
+func ActionVerKey(action string, ver string) string {
+	return action + ver
 }
 
 func ValType(item interface{}) string {
@@ -99,6 +105,7 @@ func  NewSpec[T any](actionFile ActionFile) *T {
 	if err != nil {
 		panic(err)
 	}
+	//fmt.Printf("%s\n", yamlSpec)
 	err = yaml.Unmarshal(yamlSpec, newSpec)
 	if err != nil {
 		log.Fatalf("Unmarshal4 newSpec: %v", err)
@@ -171,59 +178,10 @@ func RunAction(updated_target common.Target, exec_filename string, action_args *
 	actionFile.CheckParams(updated_target)
 	var result string
 
-	switch actionFile.Type {
-	case CLISpec:
-		cliSpec := NewSpec[CommandLineInteraceSpec](actionFile)
-
-		//rtenv_map := cliSpec.RunTimeEnv
-
-		//expected := RunCmdBlks(cliSpec.Test.Cmds)
-		//switch cliSpec.Test.Expected.Condition {
-		//case CmpEqual:
-		//	if expected == cliSpec.Test.Expected.Value {
-		//	}
-		//case CmpNotEqual:
-		//	if expected != cliSpec.Test.Expected.Value {
-		//
-		//	}
-		//case CmpContain:
-		//	if strings.Contains(expected, cliSpec.Test.Expected.Value) {
-		//
-		//	}
-		//case CmpNotContain:
-		//	if !strings.Contains(expected, cliSpec.Test.Expected.Value) {
-		//
-		//	}
-		//case CmpIntLessThan:
-		//	exp_int, err := strconv.Atoi(expected)
-		//	if  err != nil {
-		//	}
-		//	exp_val, err := strconv.Atoi(cliSpec.Test.Expected.Value)
-		//	if  err != nil {
-		//	}
-		//	if exp_int < exp_val {
-		//
-		//	}
-		//case CmpIntMoreThan:
-		//	exp_int, err := strconv.Atoi(expected)
-		//	if  err != nil {
-		//	}
-		//	exp_val, err := strconv.Atoi(cliSpec.Test.Expected.Value)
-		//	if  err != nil {
-		//	}
-		//	if exp_int > exp_val {
-		//
-		//	}
-		//default:
-		//}
-
-		result += RunCmdBlks(cliSpec.Exec.Cmds)
-
-	case WrapSpec:
-		wrapSpec := NewSpec[WrapperInterfaceSpec](actionFile)
-		result += RunAction(wrapSpec.Include,wrapSpec.Include.Action,action_args)
-	default:
-		log.Fatalf("Action file type is not supported: %s!", actionFile.Type)
+	if spec, ok := action_args.SpecMap[ActionVerKey(actionFile.Type,actionFile.Version)]; ok {
+		result += spec(updated_target,actionFile,action_args)
+	} else {
+		log.Fatalf("Action file type with version is not supported: %s %s!", actionFile.Type,actionFile.Version)
 	}
 
 	return result
