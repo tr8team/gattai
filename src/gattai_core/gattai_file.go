@@ -2,28 +2,19 @@ package core
 
 import (
 	"os"
-	//"io"
-	//"fmt"
+	"fmt"
 	"log"
-	//"path"
-	//"time"
-	//"bytes"
-	//"strconv"
-	//"strings"
-	//"context"
-	//"runtime"
-	//"os/exec"
 	"net/url"
-	//"io/ioutil"
-	//"text/template"
-	//"gopkg.in/yaml.v2"
-	//"mvdan.cc/sh/v3/expand"
-	//"mvdan.cc/sh/v3/interp"
-	//"mvdan.cc/sh/v3/syntax"
-	//"github.com/spf13/cobra"
+	"io/ioutil"
+	"gopkg.in/yaml.v2"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/tr8team/gattai/src/gattai_core/common"
+)
+
+const (
+	AllNamespaces string = "all"
+	AllTargets string = "all"
 )
 
 const (
@@ -56,7 +47,48 @@ type GattaiFile struct {
 	Targets map[string]map[string]common.Target `yaml:"targets"`
 }
 
-func BuildRepoMap(gattaiFile GattaiFile) map[string]string {
+func NewGattaiFile(gattaifile_path string) *GattaiFile {
+	gattaiFile := new(GattaiFile)
+
+	yamlFile, err := ioutil.ReadFile(gattaifile_path)
+	if err != nil {
+		log.Fatalf("Error reading Gattai File: %v", err)
+	}
+	err = yaml.Unmarshal(yamlFile, gattaiFile)
+	if err != nil {
+		log.Fatalf("Error parsing Gattai File: %v", err)
+	}
+
+	return gattaiFile
+}
+
+func (gattaiFile GattaiFile) CheckEnforceTargets() {
+	for namespace_id, target_id_list := range gattaiFile.EnforceTargets {
+		if targets, ok := gattaiFile.Targets[namespace_id]; ok {
+			for _, target_id := range target_id_list {
+				if _, ok := targets[target_id]; !ok {
+					log.Fatalf("Target from <%v> is required by enforced-target: %v", namespace_id, target_id)
+				}
+			}
+		} else {
+			log.Fatalf("Namespace is required by enforced-target: %v", namespace_id)
+		}
+	}
+}
+
+func (gattaiFile GattaiFile) CreateTempDir(keep_temp_files bool) string {
+	tempDir, err := os.MkdirTemp(gattaiFile.TempFolder, GattaiTmpFolder)
+	if err != nil {
+		log.Fatalf("Error creating temporary folder: %v", err)
+	}
+	if keep_temp_files == false {
+		fmt.Println("Clean up temp files!")
+		defer os.RemoveAll(tempDir) // clean up
+	}
+	return tempDir
+}
+
+func (gattaiFile GattaiFile) BuildRepoMap() map[string]string {
 	result := make(map[string]string)
 
 	for key, val := range gattaiFile.Repos {

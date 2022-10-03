@@ -15,7 +15,5 @@ func NewRootCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {},
 	}
 
-	rootCmd.AddCommand(NewRunCommand());
-
 	return rootCmd
 }

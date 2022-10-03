@@ -6,17 +6,13 @@ import (
 	"fmt"
 	"log"
 	"time"
-	"path"
 	"bytes"
 	"strings"
 	"context"
 	"runtime"
-	"text/template"
-	"gopkg.in/yaml.v2"
 	//"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
-	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
 const (
@@ -55,104 +51,7 @@ type CmdBlock struct {
 	Args [] string `yaml:"args"`
 }
 
-func RecCmds(updated_target common.Target,repo_path string, exec_path string, temp_folder string, temp_dir string) string {
-
-	tmpl_filepath := path.Join(repo_path,exec_path) + ".yaml"
-	tmpl_filename := path.Base(tmpl_filepath)
-	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
-		"temp_dir": TplTempDir(temp_dir),
-		"format": TplFormat(),
-	}).ParseFiles(tmpl_filepath)
-	if err != nil {
-		panic(err)
-	}
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, updated_target); err != nil {
-		panic(err)
-	}
-	var actionFile ActionFile;
-
-	//fmt.Printf("%s\n", buf.String())
-	err = yaml.Unmarshal(buf.Bytes(), &actionFile)
-	if err != nil {
-		log.Fatalf("Unmarshal3: %v", err)
-	}
-
-	CheckParams(updated_target, actionFile.Params.Required)
-	var result string
-
-	yamlSpec, err := yaml.Marshal(actionFile.Spec)
-	if err != nil {
-		panic(err)
-	}
-
-	switch actionFile.Type {
-	case CLISpec:
-		var cliSpec CommandLineInteraceSpec
-		err = yaml.Unmarshal(yamlSpec, &cliSpec)
-		if err != nil {
-			log.Fatalf("Unmarshal4 CLISpec: %v", err)
-		}
-
-		//rtenv_map := cliSpec.RunTimeEnv
-
-		//expected := CmdBlk(cliSpec.Test.Cmds)
-		//switch cliSpec.Test.Expected.Condition {
-		//case CmpEqual:
-		//	if expected == cliSpec.Test.Expected.Value {
-		//	}
-		//case CmpNotEqual:
-		//	if expected != cliSpec.Test.Expected.Value {
-		//
-		//	}
-		//case CmpContain:
-		//	if strings.Contains(expected, cliSpec.Test.Expected.Value) {
-		//
-		//	}
-		//case CmpNotContain:
-		//	if !strings.Contains(expected, cliSpec.Test.Expected.Value) {
-		//
-		//	}
-		//case CmpIntLessThan:
-		//	exp_int, err := strconv.Atoi(expected)
-		//	if  err != nil {
-		//	}
-		//	exp_val, err := strconv.Atoi(cliSpec.Test.Expected.Value)
-		//	if  err != nil {
-		//	}
-		//	if exp_int < exp_val {
-		//
-		//	}
-		//case CmpIntMoreThan:
-		//	exp_int, err := strconv.Atoi(expected)
-		//	if  err != nil {
-		//	}
-		//	exp_val, err := strconv.Atoi(cliSpec.Test.Expected.Value)
-		//	if  err != nil {
-		//	}
-		//	if exp_int > exp_val {
-		//
-		//	}
-		//default:
-		//}
-
-		result += CmdBlk(cliSpec.Exec.Cmds)
-
-	case WrapSpec:
-		var wrapSpec WrapperInterfaceSpec
-		err = yaml.Unmarshal(yamlSpec, &wrapSpec)
-		if err != nil {
-			log.Fatalf("Unmarshal4 wrapSpec: %v", err)
-		}
-		result += RecCmds(wrapSpec.Include,repo_path, wrapSpec.Include.Action, temp_folder, temp_dir)
-	default:
-		log.Fatalf("Action file type is not supported: %s!", actionFile.Type)
-	}
-
-	return result
-}
-
-func CmdBlk(cmds []CmdBlock) string {
+func RunCmdBlks(cmds []CmdBlock) string {
 
 	var result string
 

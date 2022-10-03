@@ -52,7 +52,7 @@ func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string
 				log.Fatalln("Repo prefix does not exist!")
 			}
 
-			result = strings.TrimSpace(action.RecCmds(updated_target,repo_path,path.Join(tokens[1:]...),gattai_file.TempFolder,temp_dir))
+			result = strings.TrimSpace(action.RecAction(updated_target,repo_path,path.Join(tokens[1:]...),temp_dir))
 			lookUpReturn[string(yamlTarget)] = result
 		}
 		return result
