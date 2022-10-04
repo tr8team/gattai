@@ -21,7 +21,7 @@ func NewRunCommand() *cobra.Command {
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 
-			gattaifile_path := "GattaiFile.yaml"
+			gattaifile_path := GattaiFileDefault
 
 			if len(args) >= 3 {
 				gattaifile_path = args[2]
@@ -37,15 +37,18 @@ func NewRunCommand() *cobra.Command {
 			}
 
 			if enforceTargets {
-				enforced_list := gattaiFile.CheckEnforceTargets()
-				if len(enforced_list) > 0 {
-					log.Fatalln(enforced_list)
+				err := gattaiFile.CheckEnforceTargets()
+				if err != nil {
+					log.Fatalln(err)
 				}
 			}
 
-			tempDir := gattaiFile.CreateTempDir()
+			tempDir, err := gattaiFile.CreateTempDir(GattaiTmpFolder)
+			if err != nil {
+				log.Fatalf("Error creating temporary folder: %v", err)
+			}
 			if keepTempFiles == false {
-				fmt.Println("Clean up temp files!")
+				log.Println("Clean up temp files!")
 				defer os.RemoveAll(tempDir) // clean up
 			}
 
