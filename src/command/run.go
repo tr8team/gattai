@@ -37,7 +37,10 @@ func NewRunCommand() *cobra.Command {
 			}
 
 			if enforceTargets {
-				gattaiFile.CheckEnforceTargets()
+				enforced_list := gattaiFile.CheckEnforceTargets()
+				if len(enforced_list) > 0 {
+					log.Fatalln(enforced_list)
+				}
 			}
 
 			tempDir := gattaiFile.CreateTempDir()

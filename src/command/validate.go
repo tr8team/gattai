@@ -33,7 +33,10 @@ func NewValidateCommand() *cobra.Command {
 				log.Fatalf("Gattai version not supported: %T=v!\n", gattaiFile.Version)
 			}
 
-			gattaiFile.CheckEnforceTargets()
+			enforced_list := gattaiFile.CheckEnforceTargets()
+			if len(enforced_list) > 0 {
+				log.Fatalln(enforced_list)
+			}
 
 			tempDir := gattaiFile.CreateTempDir()
 			fmt.Println("Clean up temp files!")

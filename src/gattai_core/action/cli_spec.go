@@ -156,12 +156,12 @@ func TestCLI(updated_target common.Target,actionFile ActionFile,action_args *Act
 	if len(cliSpec.Test.Cmds) > 0 {
 		expected := RunCmdBlks(cliSpec.Test.Cmds)
 		if ExpectedTest(expected,*cliSpec) {
-			log.Printf("%s: Test Passed!\n",updated_target.Action)
+			log.Printf("Test Passed!:	%s\n",updated_target.Action)
 		} else {
-			log.Fatalf("%s: Test Failed! Expecting %s, Got %s\n",updated_target.Action,cliSpec.Test.Expected.Value,expected)
+			log.Fatalf("Test Failed!:	%s (Expecting: %s, Result: %s)\n",updated_target.Action,cliSpec.Test.Expected.Value,expected)
 		}
 	} else {
-		log.Printf("%s: No Test Found!\n",updated_target.Action)
+		log.Printf("No Test Found!:	%s\n",updated_target.Action)
 	}
 	return RunCmdBlks(cliSpec.Exec.Cmds)
 }

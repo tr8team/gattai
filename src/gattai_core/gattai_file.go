@@ -2,7 +2,7 @@ package core
 
 import (
 	"os"
-	//"fmt"
+	"fmt"
 	"log"
 	"net/url"
 	"io/ioutil"
@@ -67,18 +67,22 @@ func NewGattaiFile(gattaifile_path string) *GattaiFile {
 	return gattaiFile
 }
 
-func (gattaiFile GattaiFile) CheckEnforceTargets() {
+func (gattaiFile GattaiFile) CheckEnforceTargets() string {
+	result := ""
 	for namespace_id, target_id_list := range gattaiFile.EnforceTargets {
 		if targets, ok := gattaiFile.Targets[namespace_id]; ok {
 			for _, target_id := range target_id_list {
 				if _, ok := targets[target_id]; !ok {
-					log.Fatalf("Target from <%v> is required by enforced-target: %v", namespace_id, target_id)
+					result += fmt.Sprintf("Failed to enforce target: %s > %s \n",namespace_id, target_id)
 				}
 			}
 		} else {
-			log.Fatalf("Namespace is required by enforced-target: %v", namespace_id)
+			for _, target_id := range target_id_list {
+				result += fmt.Sprintf("Failed to enforce target: %s > %s \n",namespace_id, target_id)
+			}
 		}
 	}
+	return result
 }
 
 func (gattaiFile GattaiFile) CreateTempDir() string {
