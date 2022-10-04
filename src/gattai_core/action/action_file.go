@@ -1,8 +1,7 @@
 package action
 
 import (
-	//"fmt"
-	"log"
+	"fmt"
 	"path"
 	"bytes"
 	"text/template"
@@ -46,7 +45,7 @@ type Params struct {
 	Optional map[string]*Param `yaml:"optional"`
 }
 
-type ActionFunc func(common.Target,ActionFile,*ActionArgs)string
+type ActionFunc func(common.Target,ActionFile,*ActionArgs) (string,error)
 
 type ActionArgs struct {
 	RepoPath string
@@ -58,95 +57,122 @@ func ActionVerKey(action string, ver string) string {
 	return action + ver
 }
 
-func ValType(item interface{}) string {
-
+func ValType(item interface{}) (string,error) {
+	var result string
 	switch i_type := item.(type) {
 	case bool:
-		return StrBool
+		result = StrBool
 	case int:
-		return StrInt
+		result = StrInt
 	case int8:
-		return StrInt
+		result = StrInt
 	case int16:
-		return StrInt
+		result = StrInt
 	case int32:
-		return StrInt
+		result = StrInt
 	case int64:
-		return StrInt
+		result = StrInt
 	case uint:
-		return StrInt
+		result = StrInt
 	case uint8:
-		return StrInt
+		result = StrInt
 	case uint16:
-		return StrInt
+		result = StrInt
 	case uint32:
-		return StrInt
+		result = StrInt
 	case uint64:
-		return StrInt
+		result = StrInt
 	case float32:
-		return StrFlt
+		result = StrFlt
 	case float64:
-		return StrFlt
+		result = StrFlt
 	case string:
-		return StrStr
+		result = StrStr
 	case []interface{}:
-		return StrArr
+		result = StrArr
 	case map[interface{}]interface{}:
-		return StrObj
+		result = StrObj
 	default:
-		log.Fatalf("Unsupported type: %T!\n", i_type)
+		return result, fmt.Errorf("ValType invalid error: %T",i_type)
 	}
-	return ""
+	return result, nil
 }
 
-func  NewSpec[T any](actionFile ActionFile) *T {
+func NewSpecFromBuffer[T any](buffer []byte) (*T,error) {
 	newSpec := new(T)
+	err := yaml.Unmarshal(buffer, newSpec)
+	if err != nil {
+		return new(T), fmt.Errorf("NewSpecFromBuffer Unmarshal error: %s error: %v",string(buffer),err)
+	}
+	return newSpec, nil
+}
+
+func  NewSpec[T any](actionFile ActionFile) (*T,error) {
 	yamlSpec, err := yaml.Marshal(actionFile.Spec)
 	if err != nil {
-		panic(err)
+		return new(T), fmt.Errorf("NewSpecFromBuffer Marshal error: %v",err)
 	}
-	//fmt.Printf("%s\n", yamlSpec)
-	err = yaml.Unmarshal(yamlSpec, newSpec)
+	return NewSpecFromBuffer[T](yamlSpec)
+}
+
+func (actionFile ActionFile) CheckParams(target common.Target) error {
+	result, err := check_params_rec(target, actionFile.Params)
 	if err != nil {
-		log.Fatalf("Unmarshal4 newSpec: %v", err)
+		return fmt.Errorf("CheckParams error: %v",err)
 	}
-	return newSpec
+	if len(result) > 0 {
+		return fmt.Errorf("CheckParams error: %s",result)
+	}
+	return nil
 }
 
-func (actionFile ActionFile) CheckParams(target common.Target) {
-	check_params_rec(target, actionFile.Params)
-}
-
-func check_params_rec(target common.Target,params Params) {
+func check_params_rec(target common.Target,params Params) (string,error) {
+	var result string
 	for key, val := range params.Required{
 		if var_item, ok := target.Vars[key]; ok {
-			var_type := ValType(var_item)
+			var_type,err := ValType(var_item)
+			if err != nil {
+				return result, fmt.Errorf("check_params_rec error: %v",err)
+			}
 			if val.Type == var_type {
 				if val.Type == StrObj {
-					check_params_rec(target,val.Properties)
+					output, err := check_params_rec(target,val.Properties)
+					if err != nil {
+						return result, fmt.Errorf("check_params_rec error: %v",err)
+					}
+					result += output
 				}
 			} else {
-				log.Fatalf("Invalid type for %s: %v, Expecting %v",key,var_type,val.Type)
+				result += fmt.Sprintf("check_params_rec:%s invalid type error: got %v expecting %v\n",key,var_type,val.Type)
 			}
 		} else {
-			log.Fatalf("Missing key %s, key is required!",key)
+			result += fmt.Sprintf("check_params_rec:%s key is required error\n",key)
 		}
 	}
 	for key, val := range params.Optional {
 		if var_item, ok := target.Vars[key]; ok {
-			var_type := ValType(var_item)
+			var_type, err := ValType(var_item)
+			if err != nil {
+				return result, fmt.Errorf("check_params_rec error: %v",err)
+			}
 			if val.Type == var_type {
 				if val.Type == StrObj {
-					check_params_rec(target,val.Properties)
+					output, err := check_params_rec(target,val.Properties)
+					if err != nil {
+						return result, fmt.Errorf("check_params_rec error: %v",err)
+					}
+					result += output
 				}
 			} else {
-				log.Fatalf("Invalid type for %s: %v, Expecting %v",key,var_type,val.Type)
+				result += fmt.Sprintf("check_params_rec:%s invalid type error: got %v expecting %v\n",key,var_type,val.Type)
 			}
 		}
 	}
+	return result, nil
 }
 
-func RunAction(updated_target common.Target, exec_filename string, action_args *ActionArgs) string {
+func RunAction(updated_target common.Target, exec_filename string, action_args *ActionArgs) (string,error) {
+	var result string
 
 	tmpl_filepath := path.Join(action_args.RepoPath,exec_filename) + ".yaml"
 	tmpl_filename := path.Base(tmpl_filepath)
@@ -155,34 +181,40 @@ func RunAction(updated_target common.Target, exec_filename string, action_args *
 		"format": TplFormat(),
 	}).ParseFiles(tmpl_filepath)
 	if err != nil {
-		panic(err)
+		return result, fmt.Errorf("RunAction template error: %v",err)
 	}
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, updated_target); err != nil {
-		panic(err)
+	err = tmpl.Execute(&buf, updated_target)
+	if err != nil {
+		return result, fmt.Errorf("RunAction Execute error: %v",err)
 	}
 	var actionFile ActionFile;
 
-	//fmt.Printf("%s\n", buf.String())
 	err = yaml.Unmarshal(buf.Bytes(), &actionFile)
 	if err != nil {
-		log.Fatalf("Unmarshal3: %v", err)
+		return result, fmt.Errorf("RunAction Unmarshal error: %s error: %v",buf.String(),err)
 	}
 
 	switch actionFile.Version {
 	case Version1:
 	default:
-		log.Fatalf("This version is not supported: %v", actionFile.Version)
+		return result, fmt.Errorf("RunAction actionfile Version not supported error: %s",actionFile.Version)
 	}
 
-	actionFile.CheckParams(updated_target)
-	var result string
+	err = actionFile.CheckParams(updated_target)
+	if err != nil {
+		return result, fmt.Errorf("RunAction CheckParams error: %v",err)
+	}
 
 	if spec, ok := action_args.SpecMap[ActionVerKey(actionFile.Type,actionFile.Version)]; ok {
-		result += spec(updated_target,actionFile,action_args)
+		output, err := spec(updated_target,actionFile,action_args)
+		if err != nil {
+			return result, fmt.Errorf("RunAction spec error: %v",err)
+		}
+		result += output
 	} else {
-		log.Fatalf("Action file type with version is not supported: %s %s!", actionFile.Type,actionFile.Version)
+		return result, fmt.Errorf("RunAction action type and version error: %s %s", actionFile.Type,actionFile.Version)
 	}
 
-	return result
+	return result, nil
 }

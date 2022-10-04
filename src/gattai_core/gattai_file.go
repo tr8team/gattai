@@ -3,7 +3,7 @@ package core
 import (
 	"os"
 	"fmt"
-	"log"
+	"errors"
 	"net/url"
 	"gopkg.in/yaml.v2"
 	"github.com/go-git/go-git/v5"
@@ -37,19 +37,19 @@ type GattaiFile struct {
 	Targets map[string]map[string]common.Target `yaml:"targets"`
 }
 
-func NewGattaiFileFromBuffer(buffer []byte) *GattaiFile {
+func NewGattaiFileFromBuffer(buffer []byte) (*GattaiFile,error) {
 	gattaiFile := new(GattaiFile)
 	err := yaml.Unmarshal(buffer, gattaiFile)
 	if err != nil {
-		log.Fatalf("Error parsing Gattai File: %v", err)
+		return &GattaiFile{}, fmt.Errorf("NewGattaiFileFromBuffer Unmarshal error: %s error: %v",string(buffer),err)
 	}
-	return gattaiFile
+	return gattaiFile, nil
 }
 
-func NewGattaiFile(gattaifile_path string) *GattaiFile {
+func NewGattaiFile(gattaifile_path string) (*GattaiFile,error) {
 	yamlFile, err := os.ReadFile(gattaifile_path)
 	if err != nil {
-		log.Fatalf("Error reading Gattai File: %v", err)
+		return &GattaiFile{}, fmt.Errorf("NewGattaiFile osReadFile error: %s error: %v",gattaifile_path,err)
 	}
 	return NewGattaiFileFromBuffer(yamlFile)
 }
@@ -60,12 +60,12 @@ func (gattaiFile GattaiFile) CheckEnforceTargets() error {
 		if targets, ok := gattaiFile.Targets[namespace_id]; ok {
 			for _, target_id := range target_id_list {
 				if _, ok := targets[target_id]; !ok {
-					result += fmt.Sprintf("Failed to enforce target: %s > %s \n",namespace_id, target_id)
+					result += fmt.Sprintf("CheckEnforceTargets:%s:%s failed to enforce error!\n",namespace_id, target_id)
 				}
 			}
 		} else {
 			for _, target_id := range target_id_list {
-				result += fmt.Sprintf("Failed to enforce target: %s > %s \n",namespace_id, target_id)
+				result += fmt.Sprintf("CheckEnforceTargets:%s:%s failed to enforce error!\n",namespace_id, target_id)
 			}
 		}
 	}
@@ -78,7 +78,7 @@ func (gattaiFile GattaiFile) CheckEnforceTargets() error {
 func (gattaiFile GattaiFile) CreateTempDir(folder_prefix string) (string, error) {
 	tempDir, err := os.MkdirTemp(gattaiFile.TempFolder, folder_prefix)
 	if err != nil {
-		return "", err
+		return tempDir, fmt.Errorf("CreateTempDir osMkdirTemp error: %s %s error: %v",gattaiFile.TempFolder,folder_prefix,err)
 	}
 	return tempDir, nil
 }
@@ -92,25 +92,28 @@ func (gattaiFile GattaiFile) BuildRepoMap() (map[string]string, error) {
 		case "local":
 			dir, ok := src["dir"]
 			if ok == false {
-				log.Fatalln("Please provide a dir: path")
+				return result, errors.New("BuildRepoMap:local error: dir is missing!")
 			}
 			fileInfo, err := os.Stat(dir)
-			if err != nil || fileInfo.IsDir() == false {
-				log.Fatalln("Please provide a directory for local repo!")
+			if err != nil {
+				return result, fmt.Errorf("BuildRepoMap:local osStat error: %s error: %v",dir,err)
+			}
+			if fileInfo.IsDir() == false {
+				return result, fmt.Errorf("BuildRepoMap:local IsDir error: %s is not a directory!",dir)
 			}
 			result[key] = dir
 		case "git":
 			web_url, ok := src["url"]
 			if ok == false {
-				log.Fatalln("Please provide a url: key")
+				return result, errors.New("BuildRepoMap:git error: url is missing!")
 			}
 			_, err := url.ParseRequestURI(web_url)
 			if err != nil {
-				log.Fatalf("GIT repo parse request url error: %v", err)
+				return result, fmt.Errorf("BuildRepoMap:git ParseRequestURI error: %s error: %v",web_url,err)
 			}
 			repoDir, err := os.MkdirTemp("",key)
 			if err != nil {
-				log.Fatalf("Error creating repository folder: %v", err)
+				return result, fmt.Errorf("BuildRepoMap:git osMkdirTemp error: %s error: %v",key,err)
 			}
 			var ref_name plumbing.ReferenceName
 			if branch, ok := src["branch"]; ok {
@@ -126,21 +129,24 @@ func (gattaiFile GattaiFile) BuildRepoMap() (map[string]string, error) {
 				ReferenceName:	   ref_name,
 			})
 			if err != nil {
-				log.Fatalf("Error cloning git repository: %v", err)
+				return result, fmt.Errorf("BuildRepoMap:git PlainClone error: %s error: %v",repoDir,err)
 			}
 			result[key] = repoDir
 		default:
-			errors.New("Repo type is not supported!")
+			return result, fmt.Errorf("BuildRepoMap Repo type error: %s is not supported!",val.Repo)
 		}
 	}
 
-	return result
+	return result, nil
 }
 
-func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,specMap map[string]action.ActionFunc) string {
+func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,specMap map[string]action.ActionFunc) (string,error) {
 	var result string
 
-	lookUpRepoPath := gattaiFile.BuildRepoMap()
+	lookUpRepoPath,err := gattaiFile.BuildRepoMap()
+	if err != nil {
+		return result, fmt.Errorf("LookupTargets error: %v",err)
+	}
 	lookUpReturn := make(map[string]string)
 
 	switch namespace_id {
@@ -177,5 +183,5 @@ func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string
 			}
 		}
 	}
-	return result
+	return result, nil
 }

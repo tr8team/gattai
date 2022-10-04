@@ -21,7 +21,7 @@ func NewRunCommand() *cobra.Command {
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 
-			gattaifile_path := GattaiFileDefault
+			gattaifile_path := core.GattaiFileDefault
 
 			if len(args) >= 3 {
 				gattaifile_path = args[2]
@@ -30,7 +30,10 @@ func NewRunCommand() *cobra.Command {
 			namespace_id := args[0]
 			target_id := args[1]
 
-			gattaiFile := core.NewGattaiFile(gattaifile_path)
+			gattaiFile,err := core.NewGattaiFile(gattaifile_path)
+			if err != nil {
+				log.Fatalf("Error parsing Gattai file: %v", err)
+			}
 
 			if gattaiFile.Version != core.Version1 {
 				log.Fatalf("Gattai version not supported: %T=v!\n", gattaiFile.Version)
@@ -43,7 +46,7 @@ func NewRunCommand() *cobra.Command {
 				}
 			}
 
-			tempDir, err := gattaiFile.CreateTempDir(GattaiTmpFolder)
+			tempDir, err := gattaiFile.CreateTempDir(core.GattaiTmpFolder)
 			if err != nil {
 				log.Fatalf("Error creating temporary folder: %v", err)
 			}
@@ -52,11 +55,13 @@ func NewRunCommand() *cobra.Command {
 				defer os.RemoveAll(tempDir) // clean up
 			}
 
-			result := gattaiFile.LookupTargets(namespace_id, target_id, tempDir,map[string]action.ActionFunc{
+			result,err := gattaiFile.LookupTargets(namespace_id, target_id, tempDir,map[string]action.ActionFunc{
 				action.ActionVerKey(action.CLISpec, action.Version1): action.ExecCLI,
 				action.ActionVerKey(action.WrapSpec, action.Version1): action.RedirectWrap,
 			})
-
+			if err != nil {
+				log.Fatalln(err)
+			}
 			fmt.Println(result)
 		},
 	}

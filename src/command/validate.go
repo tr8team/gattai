@@ -2,7 +2,7 @@ package command
 
 import (
 	"os"
-	"fmt"
+	//"fmt"
 	"log"
 	"github.com/spf13/cobra"
 	"github.com/tr8team/gattai/src/gattai_core"
@@ -18,7 +18,7 @@ func NewValidateCommand() *cobra.Command {
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 
-			gattaifile_path := GattaiFileDefault
+			gattaifile_path := core.GattaiFileDefault
 
 			if len(args) >= 3 {
 				gattaifile_path = args[2]
@@ -27,18 +27,21 @@ func NewValidateCommand() *cobra.Command {
 			namespace_id := args[0]
 			target_id := args[1]
 
-			gattaiFile := core.NewGattaiFile(gattaifile_path)
+			gattaiFile,err := core.NewGattaiFile(gattaifile_path)
+			if err != nil {
+				log.Fatalf("Error parsing Gattai file: %v", err)
+			}
 
 			if gattaiFile.Version != core.Version1 {
 				log.Fatalf("Gattai version not supported: %T=v!\n", gattaiFile.Version)
 			}
 
-			err := gattaiFile.CheckEnforceTargets()
+			err = gattaiFile.CheckEnforceTargets()
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			tempDir, err := gattaiFile.CreateTempDir(GattaiTmpFolder)
+			tempDir, err := gattaiFile.CreateTempDir(core.GattaiTmpFolder)
 			if err != nil {
 				log.Fatalf("Error creating temporary folder: %v", err)
 			}
