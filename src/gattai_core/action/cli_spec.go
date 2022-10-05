@@ -96,12 +96,15 @@ func RunCmdBlks(cmds []CmdBlock) (string, error) {
 			return interp.DefaultExecHandler(2*time.Second)(ctx, args)
 		}
 		var buf bytes.Buffer
-		runner, _ := interp.New(
+		runner, err := interp.New(
 			//interp.Env(expand.ListEnviron("GLOBAL=global_value")),
 			interp.StdIO(os.Stdin, &buf, os.Stdout),
 			interp.OpenHandler(open),
 			interp.ExecHandler(exec),
 		)
+		if err != nil {
+			return result, fmt.Errorf("RunCmdBlks interpNew error: %v",err)
+		}
 		err = runner.Run(context.TODO(), file)
 		if err != nil {
 			return result, fmt.Errorf("RunCmdBlks runnerRun error: %v",err)
