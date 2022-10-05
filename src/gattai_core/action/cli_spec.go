@@ -53,17 +53,59 @@ type CmdBlock struct {
 	Args [] string `yaml:"args"`
 }
 
-func RunCmdBlks(cmds []CmdBlock) (string, error) {
+func ExecCommand(src string) (string, error) {
+	var result bytes.Buffer
+	file, err := syntax.NewParser().Parse(strings.NewReader(src), "")
+	if err != nil {
+		return result.String(), fmt.Errorf("ExecCommand syntaxParse error: %v",err)
+	}
+	open := func(ctx context.Context, path string, flag int, perm os.FileMode) (io.ReadWriteCloser, error) {
+		if runtime.GOOS == "windows" && path == "/dev/null" {
+			path = "NUL"
+		}
+		return interp.DefaultOpenHandler()(ctx, path, flag, perm)
+	}
+	exec := func(ctx context.Context, args []string) error {
+		hc := interp.HandlerCtx(ctx)
+		if _, err := interp.LookPathDir(hc.Dir, hc.Env, args[0]); err != nil {
+			fmt.Printf("%s is not installed\n", args[0])
+			return interp.NewExitStatus(1)
+		}
+		return interp.DefaultExecHandler(2*time.Second)(ctx, args)
+	}
+	runner, err := interp.New(
+		//interp.Env(expand.ListEnviron("GLOBAL=global_value")),
+		interp.StdIO(os.Stdin, &result, os.Stdout),
+		interp.OpenHandler(open),
+		interp.ExecHandler(exec),
+	)
+	if err != nil {
+		return result.String(), fmt.Errorf("ExecCommand interpNew error: %v",err)
+	}
+	err = runner.Run(context.TODO(), file)
+	if err != nil {
+		return result.String(), fmt.Errorf("ExecCommand runnerRun error: %v",err)
+	}
+	return result.String(), nil
+}
+
+func ConstructCommand(blk CmdBlock) string {
+	result := blk.Command
+
+	for _, elem := range blk.Args {
+		result +=  " " + elem
+	}
+
+	return result
+}
+
+func ExecCmdBlks(cmds []CmdBlock) (string, error) {
 
 	var result string
 
 	for _, blk := range cmds {
 
-		src := blk.Command
-
-		for _, elem := range blk.Args {
-			src +=  " " + elem
-		}
+		src := ConstructCommand(blk)
 
 		// cmd := exec.Command(blk.Command)
 		// _, err := cmd.Output()
@@ -76,64 +118,35 @@ func RunCmdBlks(cmds []CmdBlock) (string, error) {
 		// }
 		//fmt.Println(src)
 
-		file, err := syntax.NewParser().Parse(strings.NewReader(src), "")
+		output, err := ExecCommand(src)
 		if err != nil {
-			return result, fmt.Errorf("RunCmdBlks syntaxParse error: %v",err)
+			return result, fmt.Errorf("ExecCmdBlks ExecCommand error: %v",err)
 		}
-
-		open := func(ctx context.Context, path string, flag int, perm os.FileMode) (io.ReadWriteCloser, error) {
-			if runtime.GOOS == "windows" && path == "/dev/null" {
-				path = "NUL"
-			}
-			return interp.DefaultOpenHandler()(ctx, path, flag, perm)
-		}
-		exec := func(ctx context.Context, args []string) error {
-			hc := interp.HandlerCtx(ctx)
-			if _, err := interp.LookPathDir(hc.Dir, hc.Env, args[0]); err != nil {
-				fmt.Printf("%s is not installed\n", args[0])
-				return interp.NewExitStatus(1)
-			}
-			return interp.DefaultExecHandler(2*time.Second)(ctx, args)
-		}
-		var buf bytes.Buffer
-		runner, err := interp.New(
-			//interp.Env(expand.ListEnviron("GLOBAL=global_value")),
-			interp.StdIO(os.Stdin, &buf, os.Stdout),
-			interp.OpenHandler(open),
-			interp.ExecHandler(exec),
-		)
-		if err != nil {
-			return result, fmt.Errorf("RunCmdBlks interpNew error: %v",err)
-		}
-		err = runner.Run(context.TODO(), file)
-		if err != nil {
-			return result, fmt.Errorf("RunCmdBlks runnerRun error: %v",err)
-		}
-		result += buf.String()
+		result += output
 	}
 
 	return result, nil
 }
 
-func ExpectedTest(expected string, cliSpec CommandLineInteraceSpec) (bool,error) {
+func ExpectedTest(expected string, conditon string, expected_value string) (bool,error) {
 	result := false
-	switch cliSpec.Test.Expected.Condition {
+	switch conditon {
 	case CmpEqual:
-		result = (strings.TrimSpace(expected) == strings.TrimSpace(cliSpec.Test.Expected.Value))
+		result = (strings.TrimSpace(expected) == strings.TrimSpace(expected_value))
 	case CmpNotEqual:
-		result = (strings.TrimSpace(expected) != strings.TrimSpace(cliSpec.Test.Expected.Value))
+		result = (strings.TrimSpace(expected) != strings.TrimSpace(expected_value))
 	case CmpContain:
-		result = strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(cliSpec.Test.Expected.Value))
+		result = strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(expected_value))
 	case CmpNotContain:
-		result =!strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(cliSpec.Test.Expected.Value))
+		result =!strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(expected_value))
 	case CmpIntLessThan:
 		exp_int, err := strconv.Atoi(expected)
 		if  err != nil {
 			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected, err)
 		}
-		exp_val, err := strconv.Atoi(cliSpec.Test.Expected.Value)
+		exp_val, err := strconv.Atoi(expected_value)
 		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",cliSpec.Test.Expected.Value, err)
+			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected_value, err)
 		}
 		result = (exp_int < exp_val)
 	case CmpIntMoreThan:
@@ -141,13 +154,13 @@ func ExpectedTest(expected string, cliSpec CommandLineInteraceSpec) (bool,error)
 		if  err != nil {
 			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected, err)
 		}
-		exp_val, err := strconv.Atoi(cliSpec.Test.Expected.Value)
+		exp_val, err := strconv.Atoi(expected_value)
 		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",cliSpec.Test.Expected.Value, err)
+			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected_value, err)
 		}
 		result = (exp_int > exp_val)
 	default:
-		return result, fmt.Errorf("ExpectedTest condition is not supported error: %s",cliSpec.Test.Expected.Condition)
+		return result, fmt.Errorf("ExpectedTest condition is not supported error: %s",conditon)
 	}
 	return result, nil
 }
@@ -157,7 +170,7 @@ func ExecCLI(updated_target common.Target,actionFile ActionFile,action_args *Act
 	if err != nil {
 		return "", fmt.Errorf("ExecCLI NewSpec error: %v",err)
 	}
-	return RunCmdBlks(cliSpec.Exec.Cmds)
+	return ExecCmdBlks(cliSpec.Exec.Cmds)
 }
 
 func TestCLI(updated_target common.Target,actionFile ActionFile,action_args *ActionArgs) (string,error) {
@@ -166,11 +179,11 @@ func TestCLI(updated_target common.Target,actionFile ActionFile,action_args *Act
 		return "", fmt.Errorf("TestCLI NewSpec error: %v",err)
 	}
 	if len(cliSpec.Test.Cmds) > 0 {
-		expected,err := RunCmdBlks(cliSpec.Test.Cmds)
+		expected,err := ExecCmdBlks(cliSpec.Test.Cmds)
 		if err != nil {
-			return "", fmt.Errorf("TestCLI RunCmdBlks error: %v",err)
+			return "", fmt.Errorf("TestCLI ExecCmdBlks error: %v",err)
 		}
-		passed, err := ExpectedTest(expected,*cliSpec)
+		passed, err := ExpectedTest(expected,cliSpec.Test.Expected.Condition,cliSpec.Test.Expected.Value)
 		if err != nil {
 			return "", fmt.Errorf("TestCLI ExpectedTest error: %v",err)
 		}
@@ -182,5 +195,5 @@ func TestCLI(updated_target common.Target,actionFile ActionFile,action_args *Act
 	} else {
 		log.Printf("TestCLI No Test Found!:	%s\n",updated_target.Action)
 	}
-	return RunCmdBlks(cliSpec.Exec.Cmds)
+	return ExecCmdBlks(cliSpec.Exec.Cmds)
 }
