@@ -32,8 +32,9 @@ func NewValidateCommand() *cobra.Command {
 				log.Fatalf("Error parsing Gattai file: %v", err)
 			}
 
-			if gattaiFile.Version != core.Version1 {
-				log.Fatalf("Gattai version not supported: %T=v!\n", gattaiFile.Version)
+			err = gattaiFile.CheckVersion()
+			if err != nil {
+				log.Fatalf("Gattai version error: %v!\n", err)
 			}
 
 			err = gattaiFile.CheckEnforceTargets()

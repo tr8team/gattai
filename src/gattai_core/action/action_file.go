@@ -53,10 +53,6 @@ type ActionArgs struct {
 	SpecMap map[string]ActionFunc
 }
 
-func ActionVerKey(action string, ver string) string {
-	return action + ver
-}
-
 func ValType(item interface{}) (string,error) {
 	var result string
 	switch i_type := item.(type) {
@@ -115,13 +111,26 @@ func  NewSpec[T any](actionFile ActionFile) (*T,error) {
 	return NewSpecFromBuffer[T](yamlSpec)
 }
 
+func ActionVerKey(action string, ver string) string {
+	return action + ver
+}
+
+func (actionFile ActionFile) CheckVersion() error {
+	switch actionFile.Version {
+	case Version1:
+	default:
+		return fmt.Errorf("ActionFile:CheckVersion inalid version error: %s",actionFile.Version)
+	}
+	return nil
+}
+
 func (actionFile ActionFile) CheckParams(target common.Target) error {
 	result, err := check_params_rec(target, actionFile.Params)
 	if err != nil {
-		return fmt.Errorf("CheckParams error: %v",err)
+		return fmt.Errorf("ActionFile:CheckParams error: %v",err)
 	}
 	if len(result) > 0 {
-		return fmt.Errorf("CheckParams error: %s",result)
+		return fmt.Errorf("ActionFile:CheckParams error: %s",result)
 	}
 	return nil
 }
@@ -195,10 +204,9 @@ func RunAction(updated_target common.Target, exec_filename string, action_args *
 		return result, fmt.Errorf("RunAction Unmarshal error: %s error: %v",buf.String(),err)
 	}
 
-	switch actionFile.Version {
-	case Version1:
-	default:
-		return result, fmt.Errorf("RunAction actionfile Version not supported error: %s",actionFile.Version)
+	err = actionFile.CheckVersion()
+	if err != nil {
+		return result, fmt.Errorf("RunAction CheckVersion error: %v",err)
 	}
 
 	err = actionFile.CheckParams(updated_target)
