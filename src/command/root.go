@@ -7,7 +7,7 @@ import (
 func NewRootCommand() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:  "gattai",
-		Version: "0.0.1",
+		Version: "v0.1.0",
 		Short: "gattai - a simple CLI to transform and inspect strings",
 		Long: `gattai is a super fancy CLI (kidding)
 
