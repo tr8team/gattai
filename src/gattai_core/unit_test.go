@@ -9,3 +9,8 @@ package core
  	"testing"
 // 	"time"
  )
+
+ func TestGattaiFileCreate(t testing.t)
+ {
+
+ }

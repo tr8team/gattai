@@ -5,14 +5,14 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
-type WrapperInterfaceSpec struct {
+type DerivedInterfaceSpec struct {
 	Include common.Target `yaml:"include"`
 }
 
-func RedirectWrap(updated_target common.Target,actionFile ActionFile,action_args *ActionArgs) (string,error) {
-	wrapSpec,err := NewSpec[WrapperInterfaceSpec](actionFile)
+func RedirectDerived(updated_target common.Target,actionFile ActionFile,action_args *ActionArgs) (string,error) {
+	derivedSpec,err := NewSpec[DerivedInterfaceSpec](actionFile)
 	if err != nil {
-		return "", fmt.Errorf("RedirectWrap NewSpec error: %v",err)
+		return "", fmt.Errorf("RedirectDerived NewSpec error: %v",err)
 	}
-	return RunAction(wrapSpec.Include,wrapSpec.Include.Action,action_args)
+	return RunAction(derivedSpec.Include,derivedSpec.Include.Action,action_args)
 }

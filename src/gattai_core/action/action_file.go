@@ -15,7 +15,7 @@ const (
 
 const (
 	CLISpec string = "CommandLineInterface"
-	WrapSpec       = "WrapperInterface"
+	DerivedSpec       = "DerivedInterface"
 )
 
 const (

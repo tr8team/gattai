@@ -52,7 +52,7 @@ func NewValidateCommand() *cobra.Command {
 
 			gattaiFile.LookupTargets(namespace_id, target_id, tempDir,map[string]action.ActionFunc{
 				action.ActionVerKey(action.CLISpec, action.Version1): action.TestCLI,
-				action.ActionVerKey(action.WrapSpec, action.Version1): action.RedirectWrap,
+				action.ActionVerKey(action.DerivedSpec, action.Version1): action.RedirectDerived,
 			})
 		},
 	}
