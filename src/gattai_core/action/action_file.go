@@ -23,8 +23,9 @@ const (
 	StrInt        	= "int"
 	StrFlt        	= "float"
 	StrStr       	= "string"
-	StrArr        	= "array"
 	StrObj       	= "object"
+	StrList        	= "list"
+	StrDict			= "dict"
 )
 
 type ActionFile struct {
@@ -37,7 +38,12 @@ type ActionFile struct {
 type Param struct {
 	Desc string `yaml:"desc"`
 	Type string `yaml:"type"`
-	Properties Params `yaml:"properties"`
+	ObjectOf Params `yaml:"object_of"`
+	ListOf *Param `yaml:"list_of"`
+	DictOf struct {
+		Key_Type string `yaml:"key_type"`
+		Value *Param `yaml:"value"`
+	}`yaml:"dict_of"`
 }
 
 type Params struct {
@@ -53,7 +59,7 @@ type ActionArgs struct {
 	SpecMap map[string]ActionFunc
 }
 
-func ValType(item interface{}) (string,error) {
+func ValPlainType(item interface{}) (string,error) {
 	var result string
 	switch i_type := item.(type) {
 	case bool:
@@ -84,12 +90,8 @@ func ValType(item interface{}) (string,error) {
 		result = StrFlt
 	case string:
 		result = StrStr
-	case []interface{}:
-		result = StrArr
-	case map[interface{}]interface{}:
-		result = StrObj
 	default:
-		return result, fmt.Errorf("ValType invalid error: %T",i_type)
+		return result, fmt.Errorf("ValPlainType invalid error: %T",i_type)
 	}
 	return result, nil
 }
@@ -125,56 +127,101 @@ func (actionFile ActionFile) CheckVersion() error {
 }
 
 func (actionFile ActionFile) CheckParams(target common.Target) error {
-	result, err := check_params_rec(target, actionFile.Params)
-	if err != nil {
-		return fmt.Errorf("ActionFile:CheckParams error: %v",err)
-	}
-	if len(result) > 0 {
-		return fmt.Errorf("ActionFile:CheckParams error: %s",result)
+	switch var_item_type := target.Vars.(type) {
+	case map[interface{}]interface{}:
+		result, err := check_multi_params(var_item_type, actionFile.Params)
+		if err != nil {
+			return fmt.Errorf("ActionFile:CheckParams error: %v",err)
+		}
+		if len(result) > 0 {
+			return fmt.Errorf("ActionFile:CheckParams error: %s",result)
+		}
+	default:
+		return fmt.Errorf("ActionFile:CheckParams error: got %T expecting object!",var_item_type)
 	}
 	return nil
 }
 
-func check_params_rec(target common.Target,params Params) (string,error) {
+func check_plain_type(var_item interface{}, val_type string) (string,error){
+	var result string
+	var_type, err := ValPlainType(var_item)
+	if err != nil {
+		return result, fmt.Errorf("check_single_param error: %v",err)
+	}
+	if var_type != val_type {
+		result += fmt.Sprintf("check_single_param invalid type error: got %s expecting %s\n",var_type,val_type)
+	}
+	return result, nil
+}
+
+func check_single_param(var_item interface{},val *Param) (string,error){
+	var result string
+	switch var_item_type := var_item.(type) {
+	case map[interface{}]interface{}:
+		switch val.Type {
+		case StrObj:
+			output, err := check_multi_params(var_item_type,val.ObjectOf)
+			if err != nil {
+				return result, fmt.Errorf("check_single_param error: %v",err)
+			}
+			result += output
+		case StrDict:
+			for var_key, var_item := range var_item_type {
+				output, err := check_plain_type(var_key,val.DictOf.Key_Type)
+				if err != nil {
+					return result, fmt.Errorf("check_single_param error: %v",err)
+				}
+				result += output
+				output, err = check_single_param(var_item,val.DictOf.Value)
+				if err != nil {
+					return result, fmt.Errorf("check_single_param error: %v",err)
+				}
+				result += output
+			}
+		default:
+			result += fmt.Sprintf("check_single_param invalid type error: map expecting %s\n",val.Type)
+		}
+	case []interface{}:
+		if val.Type == StrList {
+			for _, var_item := range var_item_type {
+				output, err := check_single_param(var_item,val.ListOf)
+				if err != nil {
+					return result, fmt.Errorf("check_single_param error: %v",err)
+				}
+				result += output
+			}
+		}
+	default:
+		output, err := check_plain_type(var_item,val.Type)
+		if err != nil {
+			return result, fmt.Errorf("check_single_param error: %v",err)
+		}
+		result += output
+	}
+
+	return result,nil
+}
+
+func check_multi_params(target_var map[interface{}]interface{},params Params) (string,error) {
 	var result string
 	for key, val := range params.Required{
-		if var_item, ok := target.Vars[key]; ok {
-			var_type,err := ValType(var_item)
+		if var_item, ok := target_var[key]; ok {
+			output, err := check_single_param(var_item,val)
 			if err != nil {
-				return result, fmt.Errorf("check_params_rec error: %v",err)
+				return result, fmt.Errorf("check_multi_params error: %v",err)
 			}
-			if val.Type == var_type {
-				if val.Type == StrObj {
-					output, err := check_params_rec(target,val.Properties)
-					if err != nil {
-						return result, fmt.Errorf("check_params_rec error: %v",err)
-					}
-					result += output
-				}
-			} else {
-				result += fmt.Sprintf("check_params_rec:%s invalid type error: got %v expecting %v\n",key,var_type,val.Type)
-			}
+			result += output
 		} else {
-			result += fmt.Sprintf("check_params_rec:%s key is required error\n",key)
+			result += fmt.Sprintf("check_multi_params:%s key is required error\n",key)
 		}
 	}
-	for key, val := range params.Optional {
-		if var_item, ok := target.Vars[key]; ok {
-			var_type, err := ValType(var_item)
+	for key, val := range params.Optional{
+		if var_item, ok := target_var[key]; ok {
+			output, err := check_single_param(var_item,val)
 			if err != nil {
-				return result, fmt.Errorf("check_params_rec error: %v",err)
+				return result, fmt.Errorf("check_multi_params error: %v",err)
 			}
-			if val.Type == var_type {
-				if val.Type == StrObj {
-					output, err := check_params_rec(target,val.Properties)
-					if err != nil {
-						return result, fmt.Errorf("check_params_rec error: %v",err)
-					}
-					result += output
-				}
-			} else {
-				result += fmt.Sprintf("check_params_rec:%s invalid type error: got %v expecting %v\n",key,var_type,val.Type)
-			}
+			result += output
 		}
 	}
 	return result, nil
