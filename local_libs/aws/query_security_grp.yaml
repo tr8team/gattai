@@ -7,7 +7,12 @@ params:
       type: string
     filters:
       desc: The security grp filters
-      type: object
+      type: dict
+      dict_of:
+        key:
+          type: string
+        value:
+          type: string
     query:
       desc: The security grp query
       type: string

@@ -17,7 +17,13 @@ params:
       type: string
     from_literals:
       desc: Create kube configmap from literals
-      type: object
+      type: dict
+      dict_of:
+        key:
+          type: string
+        value:
+          type: string
+
 spec:
   runtime_env:
     nix_shell:

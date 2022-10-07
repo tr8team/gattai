@@ -41,7 +41,7 @@ type Param struct {
 	ObjectOf Params `yaml:"object_of"`
 	ListOf *Param `yaml:"list_of"`
 	DictOf struct {
-		Key_Type string `yaml:"key_type"`
+		Key *Param  `yaml:"key"`
 		Value *Param `yaml:"value"`
 	}`yaml:"dict_of"`
 }
@@ -167,7 +167,7 @@ func check_single_param(var_item interface{},val *Param) (string,error){
 			result += output
 		case StrDict:
 			for var_key, var_item := range var_item_type {
-				output, err := check_plain_type(var_key,val.DictOf.Key_Type)
+				output, err := check_plain_type(var_key,val.DictOf.Key.Type)
 				if err != nil {
 					return result, fmt.Errorf("check_single_param error: %v",err)
 				}
