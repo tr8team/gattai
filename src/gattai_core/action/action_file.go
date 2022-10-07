@@ -227,10 +227,9 @@ func check_multi_params(target_var map[interface{}]interface{},params Params) (s
 	return result, nil
 }
 
-func RunAction(updated_target common.Target, exec_filename string, action_args *ActionArgs) (string,error) {
+func RunAction(updated_target common.Target, tmpl_filepath string, action_args *ActionArgs) (string,error) {
 	var result string
 
-	tmpl_filepath := path.Join(action_args.RepoPath,exec_filename) + ".yaml"
 	tmpl_filename := path.Base(tmpl_filepath)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
 		"temp_dir": TplTempDir(action_args.TempDir),

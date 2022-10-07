@@ -31,11 +31,11 @@ const (
 )
 
 type CommandLineInteraceSpec struct {
-	RunTimeEnv map[string](
-		map[string] struct {
-			Name string `yaml:"name"`
-			Version string `yaml:"version"`
-		}) `yaml:"runtime_env"`
+	// RunTimeEnv map[string](
+	// 	map[string] struct {
+	// 		Name string `yaml:"name"`
+	// 		Version string `yaml:"version"`
+	// 	}) `yaml:"runtime_env"`
 	Test struct {
 		Expected struct {
 			Condition string `yaml:"condition"`

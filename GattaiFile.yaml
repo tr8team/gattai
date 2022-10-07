@@ -12,12 +12,12 @@ enforce_targets:
 
 repos:
   local-src:
-    repo: local
-    src:
+    src: local
+    config:
       dir: local_libs
   #github-libs:
-  #  repo: git
-  #  src:
+  #  src: git
+  #  config:
   #    url: https://github.com/tr8team/gattai-libs.git
   #    branch: develop
 

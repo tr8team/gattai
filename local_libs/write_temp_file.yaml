@@ -9,6 +9,10 @@ params:
       desc: The content to be save if any
       type: string
 spec:
+  repo:
+    src: local
+    config:
+      dir: local_libs
   include:
     action: write_file
     vars:

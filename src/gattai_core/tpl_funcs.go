@@ -52,7 +52,8 @@ func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string
 			if !ok {
 				log.Fatalln("TplFetch lookUpRepoPath error")
 			}
-			output, err := action.RunAction(updated_target,path.Join(tokens[1:]...),&action.ActionArgs{
+			tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
+			output, err := action.RunAction(updated_target,tmpl_filepath,&action.ActionArgs{
 				RepoPath: repo_path,
 				TempDir: temp_dir,
 				SpecMap: specMap,

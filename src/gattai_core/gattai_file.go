@@ -4,10 +4,7 @@ import (
 	"os"
 	"fmt"
 	"errors"
-	"net/url"
 	"gopkg.in/yaml.v2"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/tr8team/gattai/src/gattai_core/action"
 	"github.com/tr8team/gattai/src/gattai_core/common"
 )
@@ -30,10 +27,7 @@ type GattaiFile struct {
     Version string `yaml:"version"`
     TempFolder string `yaml:"temp_folder"`
 	EnforceTargets map[string][]string `yaml:"enforce_targets"`
-	Repos map[string]struct {
-		Repo string `yaml:"repo"`
-		Src map[string]string `yaml:"src"`
-	} `yaml:"repos"`
+	Repos map[string]common.Repo `yaml:"repos"`
 	Targets map[string]map[string]common.Target `yaml:"targets"`
 }
 
@@ -92,58 +86,15 @@ func (gattaiFile GattaiFile) CreateTempDir(folder_prefix string) (string, error)
 	return tempDir, nil
 }
 
-func (gattaiFile GattaiFile) BuildRepoMap() (map[string]string, error) {
+func (gattaiFile GattaiFile) BuildRepoMap(tempDir string) (map[string]string, error) {
 	result := make(map[string]string)
 
 	for key, val := range gattaiFile.Repos {
-		src := val.Src
-		switch val.Repo {
-		case "local":
-			dir, ok := src["dir"]
-			if ok == false {
-				return result, errors.New("GattaiFile:BuildRepoMap:local error: dir is missing!")
-			}
-			fileInfo, err := os.Stat(dir)
-			if err != nil {
-				return result, fmt.Errorf("GattaiFile:BuildRepoMap:local osStat error: %s error: %v",dir,err)
-			}
-			if fileInfo.IsDir() == false {
-				return result, fmt.Errorf("GattaiFile:BuildRepoMap:local IsDir error: %s is not a directory!",dir)
-			}
-			result[key] = dir
-		case "git":
-			web_url, ok := src["url"]
-			if ok == false {
-				return result, errors.New("GattaiFile:BuildRepoMap:git error: url is missing!")
-			}
-			_, err := url.ParseRequestURI(web_url)
-			if err != nil {
-				return result, fmt.Errorf("GattaiFile:BuildRepoMap:git ParseRequestURI error: %s error: %v",web_url,err)
-			}
-			repoDir, err := os.MkdirTemp("",key)
-			if err != nil {
-				return result, fmt.Errorf("GattaiFile:BuildRepoMap:git osMkdirTemp error: %s error: %v",key,err)
-			}
-			var ref_name plumbing.ReferenceName
-			if branch, ok := src["branch"]; ok {
-				ref_name = plumbing.NewBranchReferenceName(branch)
-			}
-			if tag, ok := src["tag"]; ok {
-				ref_name = plumbing.NewTagReferenceName(tag)
-			}
-			defer os.RemoveAll(repoDir) // clean up
-			_, err = git.PlainClone(repoDir, false, &git.CloneOptions{
-				URL:               web_url,
-				Progress: 		   os.Stdout,
-				ReferenceName:	   ref_name,
-			})
-			if err != nil {
-				return result, fmt.Errorf("GattaiFile:BuildRepoMap:git PlainClone error: %s error: %v",repoDir,err)
-			}
-			result[key] = repoDir
-		default:
-			return result, fmt.Errorf("GattaiFile:BuildRepoMap Repo type error: %s is not supported!",val.Repo)
+		output, err  := common.GetRepoPath(tempDir,key,val)
+		if err != nil {
+			return result, fmt.Errorf("GattaiFile:BuildRepoMap error %v",err)
 		}
+		result[key] = output
 	}
 
 	return result, nil
@@ -152,7 +103,7 @@ func (gattaiFile GattaiFile) BuildRepoMap() (map[string]string, error) {
 func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,specMap map[string]action.ActionFunc) (string,error) {
 	var result string
 
-	lookUpRepoPath,err := gattaiFile.BuildRepoMap()
+	lookUpRepoPath,err := gattaiFile.BuildRepoMap(tempDir)
 	if err != nil {
 		return result, fmt.Errorf("GattaiFile:LookupTargets error: %v",err)
 	}
