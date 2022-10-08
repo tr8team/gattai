@@ -12,12 +12,12 @@ spec:
   exec:
     cmds:
       - command: echo
+        {{- with .Vars }}
         args:
-          {{- with .Vars }}
           - "\"{{ format .content }}\" > {{ .filename }}"
-          {{- end }}
+        {{- end }}
       - command: echo
+        {{- with .Vars }}
         args:
-          {{- with .Vars }}
           - {{ .filename }}
-          {{- end }}
+        {{- end }}

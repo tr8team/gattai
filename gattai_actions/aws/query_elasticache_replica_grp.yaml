@@ -23,8 +23,8 @@ spec:
       value: 1
     cmds:
       - command: aws
+        {{- with .Vars }}
         args:
-          {{- with .Vars }}
           {{- with .region }}
           - --region {{ . }}
           {{- end }}
@@ -32,13 +32,13 @@ spec:
           {{- with .identifier }}
           - --replication-group-id {{ . }}
           {{- end }}
-          {{- end }}
           - "| jq '. | length'"
+        {{- end }}
   exec:
     cmds:
       - command: aws
+        {{- with .Vars }}
         args:
-          {{- with .Vars }}
           {{- with .region }}
           - --region {{ . }}
           {{- end }}
@@ -49,4 +49,4 @@ spec:
           {{- with .query }}
           - --query "ReplicationGroups[0].{{ . }}"
           {{- end }}
-          {{- end }}
+        {{- end }}

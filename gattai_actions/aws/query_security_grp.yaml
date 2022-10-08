@@ -28,8 +28,8 @@ spec:
       value: 1
     cmds:
       - command: aws
+        {{- with .Vars }}
         args:
-          {{- with .Vars }}
           {{- with .region }}
           - --region {{ . }}
           {{- end }}
@@ -40,13 +40,13 @@ spec:
           - Name={{ $key }},Values="{{ $val }}"
           {{- end }}
           {{- end }}
-          {{- end }}
           - "| jq '. | length'"
+        {{- end }}
   exec:
     cmds:
       - command: aws
+        {{- with .Vars }}
         args:
-          {{- with .Vars }}
           {{- with .region }}
           - --region {{ . }}
           {{- end }}
@@ -60,4 +60,4 @@ spec:
           {{- with .query }}
           - --query "SecurityGroups[0].{{ . }}"
           {{- end }}
-          {{- end }}
+        {{- end }}

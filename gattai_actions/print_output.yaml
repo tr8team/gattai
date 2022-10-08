@@ -9,7 +9,7 @@ spec:
   exec:
     cmds:
       - command: echo
+        {{- with .Vars }}
         args:
-          {{- with .Vars }}
           - "\"{{ format .content }}\""
-          {{- end }}
+        {{- end }}

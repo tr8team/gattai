@@ -23,18 +23,18 @@ spec:
       value: 1
     cmds:
       - command: op
+        {{- with .Vars }}
         args:
-          {{- with .Vars }}
           - item list
           {{- with .identifier }}
           - "| grep \"{{ . }}\" | wc -l"
           {{- end }}
-          {{- end }}
+        {{- end }}
   exec:
     cmds:
       - command: op
+        {{- with .Vars }}
         args:
-          {{- with .Vars }}
           {{- with .identifier }}
           - item get "{{ . }}"
           {{- end }}
@@ -44,4 +44,4 @@ spec:
           {{- with .vault }}
           - --vault {{ . }}
           {{- end }}
-          {{- end }}
+        {{- end }}

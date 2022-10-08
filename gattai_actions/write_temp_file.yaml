@@ -15,6 +15,8 @@ spec:
       dir: ./
   include:
     action: write_file
+    {{- with .Vars }}
     vars:
-      filename: {{ temp_dir .Vars.filename }}
-      content: "{{ format .Vars.content }}"
+      filename: {{ temp_dir .filename }}
+      content: "{{ format .content }}"
+    {{- end }}

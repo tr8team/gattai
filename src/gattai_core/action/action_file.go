@@ -188,7 +188,8 @@ func rec_target_from_single_param(val *Param,out *interface{}) error {
 		}
 		*out = &map[interface{}]interface{}{key : value}
 	default:
-		*out = &val.Type
+		result := "\"" + val.Type + "\""
+		*out = &result
 	}
 	return nil
 }

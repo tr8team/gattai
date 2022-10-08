@@ -33,9 +33,9 @@ spec:
   exec:
     cmds:
       - command: kubectl
+        {{- with .Vars }}
         args:
           - create configmap
-          {{- with .Vars }}
           - {{ .name }}
           {{- range $key, $val := .from_literals }}
           - --from-literal={{ $key }}={{ $val }}
@@ -50,4 +50,4 @@ spec:
           - --from-env-file={{ . }}
           {{- end }}
           - --dry-run=client -o yaml
-          {{- end }}
+        {{- end }}
