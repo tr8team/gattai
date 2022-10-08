@@ -126,6 +126,73 @@ func (actionFile ActionFile) CheckVersion() error {
 	return nil
 }
 
+func (actionFile ActionFile) GenerateTargetFromParamsInYaml() (string,error) {
+	result := make(map[interface{}]interface{})
+	err := rec_target_from_multi_params(actionFile.Params,&result)
+	if err != nil {
+		return "", fmt.Errorf("GenerateTargetFromParamsInYaml error: %v",err)
+	}
+	yamlFmt, err := yaml.Marshal(result)
+	if err != nil {
+		return "", fmt.Errorf("rec_target_from_multi_params Marshal error: %v",err)
+	}
+	return string(yamlFmt), nil
+}
+
+func rec_target_from_multi_params(params Params,out *map[interface{}]interface{}) error {
+	for key, val := range params.Required{
+		var result interface{}
+		err := rec_target_from_single_param(val,&result)
+		if err != nil {
+			return fmt.Errorf("rec_target_from_multi_params error: %v",err)
+		}
+		(*out)[key] = result
+	}
+	for key, val := range params.Optional{
+		var result interface{}
+		err := rec_target_from_single_param(val,&result)
+		if err != nil {
+			return fmt.Errorf("rec_target_from_multi_params error: %v",err)
+		}
+		(*out)[key] = result
+	}
+	return nil
+}
+
+func rec_target_from_single_param(val *Param,out *interface{}) error {
+	switch val.Type {
+	case StrObj:
+		result := make(map[interface{}]interface{})
+		err := rec_target_from_multi_params(val.ObjectOf,&result)
+		if err != nil {
+			return fmt.Errorf("rec_target_from_single_param error: %v",err)
+		}
+		*out = &result
+	case StrList:
+		var result interface{}
+		err := rec_target_from_single_param(val.ListOf,&result)
+		if err != nil {
+			return fmt.Errorf("rec_target_from_single_param error: %v",err)
+		}
+		*out = &[]interface{}{result}
+	case StrDict:
+		var key interface{}
+		err := rec_target_from_single_param(val.DictOf.Key,&key)
+		if err != nil {
+			return fmt.Errorf("rec_target_from_single_param error: %v",err)
+		}
+		var value interface{}
+		err = rec_target_from_single_param(val.DictOf.Value,&value)
+		if err != nil {
+			return fmt.Errorf("rec_target_from_single_param error: %v",err)
+		}
+		*out = &map[interface{}]interface{}{key : value}
+	default:
+		*out = &val.Type
+	}
+	return nil
+}
+
 func (actionFile ActionFile) CheckParams(target common.Target) error {
 	switch var_item_type := target.Vars.(type) {
 	case map[interface{}]interface{}:

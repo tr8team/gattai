@@ -18,7 +18,7 @@ func RedirectDerived(updated_target common.Target,actionFile ActionFile,action_a
 	}
 	repopath := action_args.RepoPath
 	if len(derivedSpec.Repo.Src) > 0 {
-		output, err := common.GetRepoPath(action_args.TempDir,derivedSpec.Repo.Src,derivedSpec.Repo)
+		output, err := common.GetRepoPath(action_args.TempDir,derivedSpec.Repo.Src,derivedSpec.Repo,action_args.RepoPath)
 		if err != nil {
 			return "", fmt.Errorf("RedirectDerived error: %v",err)
 		}

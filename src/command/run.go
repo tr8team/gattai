@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"log"
+	"path"
 	"github.com/spf13/cobra"
 	"github.com/tr8team/gattai/src/gattai_core"
 	"github.com/tr8team/gattai/src/gattai_core/action"
@@ -15,7 +16,7 @@ func NewRunCommand() *cobra.Command {
 	var keepTempFiles bool
 
 	runCmd := &cobra.Command{
-		Use:   "run <namespace> <target> [gattaifile_path]",
+		Use:   "run <namespace> <target> [gattaifile_path|gattaifile_folder]",
 		//Aliases: []string{"insp"},
 		Short:  "Run a target",
 		Args:  cobra.MinimumNArgs(2),
@@ -24,7 +25,20 @@ func NewRunCommand() *cobra.Command {
 			gattaifile_path := core.GattaiFileDefault
 
 			if len(args) >= 3 {
-				gattaifile_path = args[2]
+				output, err := GetGattaiFilePath(args[2],gattaifile_path)
+				if err != nil {
+					log.Fatalf("Error Gattai file path: %v", err)
+				}
+				gattaifile_path = output
+			}
+
+			fileInfo, err := os.Stat(gattaifile_path)
+			if err != nil {
+				log.Fatalf("Error invalid Gattai file: %v", err)
+			}
+
+			if fileInfo.IsDir() {
+				gattaifile_path = path.Join(gattaifile_path,core.GattaiFileDefault)
 			}
 
 			namespace_id := args[0]

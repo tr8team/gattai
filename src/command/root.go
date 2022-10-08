@@ -1,6 +1,9 @@
 package command
 
 import (
+	"os"
+	"fmt"
+	"path"
 	"github.com/spf13/cobra"
 )
 
@@ -16,4 +19,19 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	return rootCmd
+}
+
+func GetGattaiFilePath(gattaifile_path string, default_path string) (string, error){
+	result := gattaifile_path
+
+	fileInfo, err := os.Stat(result)
+	if err != nil {
+		return result, fmt.Errorf("GetGattaiFilePath error: %v", err)
+	}
+
+	if fileInfo.IsDir() {
+		result = path.Join(gattaifile_path,default_path)
+	}
+
+	return result, nil
 }

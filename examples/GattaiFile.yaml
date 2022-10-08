@@ -14,7 +14,7 @@ repos:
   local-src:
     src: local
     config:
-      dir: local_libs
+      dir: gattai_actions
   #github-libs:
   #  src: git
   #  config:

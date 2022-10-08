@@ -90,7 +90,7 @@ func (gattaiFile GattaiFile) BuildRepoMap(tempDir string) (map[string]string, er
 	result := make(map[string]string)
 
 	for key, val := range gattaiFile.Repos {
-		output, err  := common.GetRepoPath(tempDir,key,val)
+		output, err  := common.GetRepoPath(tempDir,key,val,"")
 		if err != nil {
 			return result, fmt.Errorf("GattaiFile:BuildRepoMap error %v",err)
 		}

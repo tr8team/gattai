@@ -1,7 +1,7 @@
 module.yml
 **/templates/**/*.yml
 **/templates/**/*.yaml
-local_libs/**/*.yml
-local_libs/**/*.yaml
+gattai_actions/**/*.yml
+gattai_actions/**/*.yaml
 helpers/**/*.yml
 helpers/**/*.yaml

@@ -12,8 +12,8 @@ import (
 func NewValidateCommand() *cobra.Command {
 
 	validCmd := &cobra.Command{
-		Use:   "validate <namespace> <target> [gattaifile_path]",
-		//Aliases: []string{"insp"},
+		Use:   "validate <namespace> <target> [gattaifile_path|gattaifile_folder]",
+		Aliases: []string{"valid"},
 		Short:  "Validate a target",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -21,7 +21,11 @@ func NewValidateCommand() *cobra.Command {
 			gattaifile_path := core.GattaiFileDefault
 
 			if len(args) >= 3 {
-				gattaifile_path = args[2]
+				output, err := GetGattaiFilePath(args[2],gattaifile_path)
+				if err != nil {
+					log.Fatalf("Error Gattai file path: %v", err)
+				}
+				gattaifile_path = output
 			}
 
 			namespace_id := args[0]

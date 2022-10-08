@@ -3,6 +3,7 @@ package common
 import (
 	"os"
 	"fmt"
+	"path"
 	"errors"
 	"net/url"
 	"github.com/go-git/go-git/v5"
@@ -14,7 +15,7 @@ type Repo struct {
 	Config map[string]string `yaml:"config"`
 }
 
-func GetRepoPath(tempDir string,key string,repo Repo) (string,error) {
+func GetRepoPath(tempDir string,key string,repo Repo,parent_repopath string) (string,error) {
 	var result string
 	switch repo.Src {
 	case "local":
@@ -22,6 +23,7 @@ func GetRepoPath(tempDir string,key string,repo Repo) (string,error) {
 		if ok == false {
 			return result, errors.New("GetRepoPath:local error: dir is missing!")
 		}
+		repoDir := path.Join(parent_repopath,dir)
 		fileInfo, err := os.Stat(dir)
 		if err != nil {
 			return result, fmt.Errorf("GetRepoPath:local osStat error: %s error: %v",dir,err)
@@ -29,7 +31,7 @@ func GetRepoPath(tempDir string,key string,repo Repo) (string,error) {
 		if fileInfo.IsDir() == false {
 			return result, fmt.Errorf("GetRepoPath:local IsDir error: %s is not a directory!",dir)
 		}
-		result = dir
+		result = repoDir
 	case "git":
 		web_url, ok := repo.Config["url"]
 		if ok == false {

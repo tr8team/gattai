@@ -12,7 +12,7 @@ spec:
   repo:
     src: local
     config:
-      dir: local_libs
+      dir: ./
   include:
     action: write_file
     vars:
