@@ -1,6 +1,6 @@
 <table>
 <tr>
-<td> File </td> <td> How to Use </td><td> Fields </td>
+<td> File </td> <td> How to Use </td><td> Fields </td><td></td><td></td>
 </tr>
 <tr>
 <td rowspan="5"> k8s/configmap.yaml </td>
@@ -18,19 +18,29 @@ vars:
 ```
 
 </td>
-<td>test</td>
+<td>from_env_file</td>
+<td><i>optional</i></td>
+<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>
-<td>test</td>
+<td>from_file</td>
+<td><i>optional</i></td>
+<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>
-<td>test</td>
+<td>from_literals</td>
+<td><i>optional</i></td>
+<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>
-<td>test</td>
+<td>name</td>
+<td><b>required</b></td>
+<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>
-<td>test</td>
+<td>namespace</td>
+<td><b>required</b></td>
+<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>
 <td rowspan="3"> k8s_rsc/external_secret.yaml </td>
@@ -46,11 +56,17 @@ vars:
 ```
 
 </td>
-<td>test</td>
+<td>name</td>
+<td><b>required</b></td>
+<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>
-<td>test</td>
+<td>secretStoreName</td>
+<td><b>required</b></td>
+<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>
-<td>test</td>
+<td>data</td>
+<td><i>optional</i></td>
+<td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
