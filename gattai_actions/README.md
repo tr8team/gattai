@@ -9,24 +9,24 @@
 ```yaml
 action: <repo_id>/k8s/configmap
 vars:
-  from_env_file: '"string"'
-  from_file: '"string"'
-  from_literals:
+  fromEnvFile: '"string"'
+  fromFile: '"string"'
+  fromLiterals:
     '"string"': '"string"'
   name: '"string"'
   namespace: '"string"'
 ```
 
 </td>
-<td>from_env_file<br/><i>(optional)</i></td>
+<td>fromEnvFile<br/><i>(optional)</i></td>
 <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>
-<td>from_file<br/><i>(optional)</i></td>
+<td>fromFile<br/><i>(optional)</i></td>
 <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>
-<td>from_literals<br/><i>(optional)</i></td>
+<td>fromLiterals<br/><i>(optional)</i></td>
 <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
 <tr>

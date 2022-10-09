@@ -87,4 +87,4 @@ targets:
       vars:
         name: envfile
         namespace: default
-        from_file: "{{ fetch .Targets.dev.create_file }}"
+        fromFile: "{{ fetch .Targets.dev.create_file }}"
