@@ -1,6 +1,6 @@
 <table>
 <tr>
-<td> File </td> <td> Fields </td><td></td>
+<td> File </td> <td> Fields </td><td>Description</td>
 </tr>
 <tr>
 <td rowspan="5">
