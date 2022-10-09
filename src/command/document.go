@@ -13,6 +13,47 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/action"
 )
 
+// func PrintReadMe() {
+// 	content := `
+// <table>
+// <tr>
+// <td> File </td> <td> Fields </td><td>Description</td>
+// </tr>
+// {{- range $key, $val := .Entries }}
+// {{- range $index, $elem := val.Fields }}
+// {{- if equal 0 $index }}
+// <tr>
+// <td rowspan="{{ len .Fields }}">
+// <b>{{ $key }}</b>
+// \n
+// {{ .YamlTarget }}
+// \n
+// </td>
+// {{- else }}
+// <tr>
+// {{- end }}
+// <td>{{ $elem.Name }}<br/>({{ $elem.Attribute }})</td>
+// <td>{{ $elem.Desc }}</td>
+// </tr>
+// {{- end }}
+// {{- end }}
+// </table>
+// 	`
+// }
+
+type ReadMeDoc struct {
+	Entries map[string]ReadMeEntry
+}
+
+type ReadMeEntry struct {
+	Fields []struct {
+		Name string
+		Desc string
+		Attribute string
+	}
+	YamlTarget string
+}
+
 func ReadActionFilesDir(root_path string, item_name string) map[string]string {
 	input_path := path.Join(root_path,item_name)
 	fileInfo, err := os.Stat(input_path)
