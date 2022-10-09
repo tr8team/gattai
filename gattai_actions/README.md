@@ -1,3 +1,11 @@
+<head>
+<style>
+    table {
+            background: transparent;
+    }
+</style>
+</head>
+<body>
 <table>
 <tr>
 <td> File </td> <td> Fields </td><td>Description</td>
@@ -62,3 +70,4 @@ vars:
 <td>data<br/><i>(optional)</i></td>
 <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
+</body>
