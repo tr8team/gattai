@@ -126,11 +126,17 @@ func (actionFile ActionFile) CheckVersion() error {
 	return nil
 }
 
-func (actionFile ActionFile) GenerateTargetFromParamsInYaml() (string,error) {
-	result := make(map[interface{}]interface{})
-	err := rec_target_from_multi_params(actionFile.Params,&result)
+func (actionFile ActionFile) GenerateTargetFromParamsInYaml(filename string) (string,error) {
+	vars := make(map[interface{}]interface{})
+	err := rec_target_from_multi_params(actionFile.Params,&vars)
 	if err != nil {
 		return "", fmt.Errorf("GenerateTargetFromParamsInYaml error: %v",err)
+	}
+	var extension = path.Ext(filename)
+	var action_name = filename[0:len(filename)-len(extension)]
+	result := map[string]interface{}{
+		"action": path.Join("<repo_id>",action_name),
+		"vars": &vars,
 	}
 	yamlFmt, err := yaml.Marshal(result)
 	if err != nil {

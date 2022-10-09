@@ -13,7 +13,8 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/action"
 )
 
-func ReadActionFilesDir(input_path string) map[string]string {
+func ReadActionFilesDir(root_path string, item_name string) map[string]string {
+	input_path := path.Join(root_path,item_name)
 	fileInfo, err := os.Stat(input_path)
 	if err != nil {
 		log.Fatalf("Error invalid path: %v", err)
@@ -27,20 +28,21 @@ func ReadActionFilesDir(input_path string) map[string]string {
 			log.Fatalf("Error cannot read dir: %v", err)
 		}
 		for _, item := range items {
-			copiedmap := ReadActionFilesDir(path.Join(input_path,item.Name()))
+			copiedmap := ReadActionFilesDir(input_path,item.Name())
 			for key, val  := range copiedmap {
 				result[key] = val
 		    }
 		}
 	} else {
 		if path.Ext(input_path) == ".yaml" {
-			result[input_path] = ReadSingleActionFile(input_path)
+			result[input_path] = ReadSingleActionFile(root_path,item_name)
 		}
 	}
 	return result
 }
 
-func ReadSingleActionFile(file_path string) string {
+func ReadSingleActionFile(root_path string, filename string) string {
+	file_path := path.Join(root_path,filename)
 	tmpl_filename := path.Base(file_path)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
 		"temp_dir": action.TplTempDir(""),
@@ -65,7 +67,7 @@ func ReadSingleActionFile(file_path string) string {
 		log.Fatalf("Error CheckVersion: %v", err)
 	}
 
-	result, err := actionFile.GenerateTargetFromParamsInYaml()
+	result, err := actionFile.GenerateTargetFromParamsInYaml(file_path)
 	if err != nil {
 		log.Fatalf("Error GenerateTargetFromParamsInYaml: %v", err)
 	}
@@ -82,7 +84,7 @@ func NewDocumentCommand() *cobra.Command {
 		Short:  "Document an action",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			finalmap := ReadActionFilesDir(args[0])
+			finalmap := ReadActionFilesDir("",args[0])
 			for key, val  := range finalmap {
 				log.Printf("%s : %s\n",key,val)
 		    }
