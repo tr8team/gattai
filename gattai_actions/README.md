@@ -1,12 +1,4 @@
-<head>
-<style>
-    table {
-            background: transparent;
-    }
-</style>
-</head>
-<body>
-<table>
+<table stype="background-color: transparent">
 <tr>
 <td> File </td> <td> Fields </td><td>Description</td>
 </tr>
@@ -70,4 +62,3 @@ vars:
 <td>data<br/><i>(optional)</i></td>
 <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</td>
 </tr>
-</body>
