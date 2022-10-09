@@ -1,4 +1,4 @@
-<table stype="background-color: transparent">
+<table>
 <tr>
 <td> File </td> <td> Fields </td><td>Description</td>
 </tr>
