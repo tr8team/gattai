@@ -51,7 +51,9 @@ type Params struct {
 	Optional map[string]*Param `yaml:"optional"`
 }
 
-type ActionFunc func(common.Target,ActionFile,*ActionArgs) (string,error)
+type CommandFunc func(ActionSpec,ActionArgs,string) (string,error)
+
+type ActionFunc func(ActionFile)(ActionSpec,error)
 
 type ActionArgs struct {
 	RepoPath string
@@ -96,19 +98,20 @@ func ValPlainType(item interface{}) (string,error) {
 	return result, nil
 }
 
-func NewSpecFromBuffer[T any](buffer []byte) (*T,error) {
-	newSpec := new(T)
-	err := yaml.Unmarshal(buffer, newSpec)
+func NewSpecFromBuffer[T ActionSpec](buffer []byte) (ActionSpec,error) {
+	var newSpec T
+	err := yaml.Unmarshal(buffer, &newSpec)
 	if err != nil {
-		return new(T), fmt.Errorf("NewSpecFromBuffer Unmarshal error: %s error: %v",string(buffer),err)
+		return newSpec, fmt.Errorf("NewSpecFromBuffer Unmarshal error: %s error: %v",string(buffer),err)
 	}
 	return newSpec, nil
 }
 
-func  NewSpec[T any](actionFile ActionFile) (*T,error) {
+func  NewSpec[T ActionSpec](actionFile ActionFile) (ActionSpec,error) {
 	yamlSpec, err := yaml.Marshal(actionFile.Spec)
 	if err != nil {
-		return new(T), fmt.Errorf("NewSpecFromBuffer Marshal error: %v",err)
+		var newSpec T
+		return newSpec, fmt.Errorf("NewSpecFromBuffer Marshal error: %v",err)
 	}
 	return NewSpecFromBuffer[T](yamlSpec)
 }
@@ -301,48 +304,40 @@ func check_multi_params(target_var map[interface{}]interface{},params Params) (s
 	return result, nil
 }
 
-func RunAction(updated_target common.Target, tmpl_filepath string, action_args *ActionArgs) (string,error) {
-	var result string
-
+func RunAction(updated_target common.Target, tmpl_filepath string, action_args ActionArgs) (ActionSpec,error) {
 	tmpl_filename := path.Base(tmpl_filepath)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
 		"temp_dir": TplTempDir(action_args.TempDir),
 		"format": TplFormat(),
 	}).ParseFiles(tmpl_filepath)
 	if err != nil {
-		return result, fmt.Errorf("RunAction template error: %v",err)
+		return nil, fmt.Errorf("RunAction template error: %v",err)
 	}
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, updated_target)
 	if err != nil {
-		return result, fmt.Errorf("RunAction Execute error: %v",err)
+		return nil, fmt.Errorf("RunAction Execute error: %v",err)
 	}
 	var actionFile ActionFile;
 
 	err = yaml.Unmarshal(buf.Bytes(), &actionFile)
 	if err != nil {
-		return result, fmt.Errorf("RunAction Unmarshal error: %s error: %v",buf.String(),err)
+		return nil, fmt.Errorf("RunAction Unmarshal error: %s error: %v",buf.String(),err)
 	}
 
 	err = actionFile.CheckVersion()
 	if err != nil {
-		return result, fmt.Errorf("RunAction CheckVersion error: %v",err)
+		return nil, fmt.Errorf("RunAction CheckVersion error: %v",err)
 	}
 
 	err = actionFile.CheckParams(updated_target)
 	if err != nil {
-		return result, fmt.Errorf("RunAction CheckParams error: %v",err)
+		return nil, fmt.Errorf("RunAction CheckParams error: %v",err)
 	}
 
 	if spec, ok := action_args.SpecMap[ActionVerKey(actionFile.Type,actionFile.Version)]; ok {
-		output, err := spec(updated_target,actionFile,action_args)
-		if err != nil {
-			return result, fmt.Errorf("RunAction spec error: %v",err)
-		}
-		result += output
-	} else {
-		return result, fmt.Errorf("RunAction action type and version error: %s %s", actionFile.Type,actionFile.Version)
+		return spec(actionFile)
 	}
 
-	return result, nil
+	return nil, fmt.Errorf("RunAction action type and version error: %s %s", actionFile.Type,actionFile.Version)
 }

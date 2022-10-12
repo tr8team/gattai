@@ -13,7 +13,8 @@ spec:
     src: local
     config:
       dir: ./
-  include:
+
+  inherit_exec:
     action: write_file
     {{- with .Vars }}
     vars:

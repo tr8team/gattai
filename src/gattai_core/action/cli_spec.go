@@ -4,7 +4,7 @@ import (
 	"os"
 	"io"
 	"fmt"
-	"log"
+	//"log"
 	"time"
 	"bytes"
 	"strconv"
@@ -14,7 +14,7 @@ import (
 	//"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
-	"github.com/tr8team/gattai/src/gattai_core/common"
+	//"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
 const (
@@ -36,16 +36,18 @@ type CommandLineInteraceSpec struct {
 	// 		Name string `yaml:"name"`
 	// 		Version string `yaml:"version"`
 	// 	}) `yaml:"runtime_env"`
-	Test struct {
-		Expected struct {
-			Condition string `yaml:"condition"`
-			Value string `yaml:"value"`
-		}
-		Cmds []CmdBlock `yaml:"cmds"`
-	} `yaml:"test"`
+	Test TestCmd `yaml:"test"`
 	Exec struct {
 		Cmds []CmdBlock `yaml:"cmds"`
 	} `yaml:"exec"`
+}
+
+type TestCmd struct {
+	Expected struct {
+		Condition string `yaml:"condition"`
+		Value string `yaml:"value"`
+	}
+	Cmds []CmdBlock `yaml:"cmds"`
 }
 
 type CmdBlock struct {
@@ -165,35 +167,26 @@ func ExpectedTest(expected string, conditon string, expected_value string) (bool
 	return result, nil
 }
 
-func ExecCLI(updated_target common.Target,actionFile ActionFile,action_args *ActionArgs) (string,error) {
-	cliSpec, err := NewSpec[CommandLineInteraceSpec](actionFile)
-	if err != nil {
-		return "", fmt.Errorf("ExecCLI NewSpec error: %v",err)
-	}
-	return ExecCmdBlks(cliSpec.Exec.Cmds)
-}
-
-func TestCLI(updated_target common.Target,actionFile ActionFile,action_args *ActionArgs) (string,error) {
-	cliSpec, err := NewSpec[CommandLineInteraceSpec](actionFile)
-	if err != nil {
-		return "", fmt.Errorf("TestCLI NewSpec error: %v",err)
-	}
+func (cliSpec CommandLineInteraceSpec) TestAction(action_name string, action_args ActionArgs) (string,error)  {
+	result := fmt.Sprintf("%s No Test Found!\n",action_name)
 	if len(cliSpec.Test.Cmds) > 0 {
 		expected,err := ExecCmdBlks(cliSpec.Test.Cmds)
 		if err != nil {
-			return "", fmt.Errorf("TestCLI ExecCmdBlks error: %v",err)
+			return result, fmt.Errorf("%s ExecCmdBlks error: %v",action_name,err)
 		}
 		passed, err := ExpectedTest(expected,cliSpec.Test.Expected.Condition,cliSpec.Test.Expected.Value)
 		if err != nil {
-			return "", fmt.Errorf("TestCLI ExpectedTest error: %v",err)
+			return result, fmt.Errorf("%s ExpectedTest error: %v",action_name,err)
 		}
 		if passed {
-			log.Printf("TestCLI Test Passed!:	%s\n",updated_target.Action)
+			result = fmt.Sprintf("%s Test Passed!\n",action_name)
 		} else {
-			log.Fatalf("TestCLI Test Failed!:	%s (Expecting: %s, Result: %s)\n",updated_target.Action,cliSpec.Test.Expected.Value,expected)
+			return result, fmt.Errorf("%s Test Failed! (Expecting: %s, Result: %s)\n",action_name,cliSpec.Test.Expected.Value,expected)
 		}
-	} else {
-		log.Printf("TestCLI No Test Found!:	%s\n",updated_target.Action)
 	}
+	return result, nil
+}
+
+func (cliSpec CommandLineInteraceSpec) ExecAction(action_name string, action_args ActionArgs) (string,error)  {
 	return ExecCmdBlks(cliSpec.Exec.Cmds)
 }

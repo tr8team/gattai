@@ -17,25 +17,24 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
-func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn map[string]string,specMap map[string]action.ActionFunc) func(common.Target) string {
+func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn map[string]string,cmdFunc action.CommandFunc) func(common.Target) string {
 	return func(target common.Target) string {
 		// get target generated key
 		yamlTarget, err := yaml.Marshal(target)
 		if err != nil {
 			log.Fatalf("TplFetch Marshal error: %v", err)
 		}
-		var buf bytes.Buffer
 		// check if result for target already exist
 		result, ok := lookUpReturn[string(yamlTarget)]
 		if !ok {
 			// if not, parse target to see if target have dependency
 			tmpl, err := template.New("").Funcs(template.FuncMap{
-				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,lookUpReturn,specMap),
+				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,lookUpReturn,cmdFunc),
 			}).Parse(string(yamlTarget))
 			if err != nil {
 				log.Fatalf("TplFetch template Parse error: %v", err)
 			}
-			buf.Reset()
+			var buf bytes.Buffer
 			err = tmpl.Execute(&buf, gattai_file);
 			if err != nil {
 				log.Fatalf("TplFetch Execute error: %v", err)
@@ -53,13 +52,21 @@ func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string
 				log.Fatalln("TplFetch lookUpRepoPath error")
 			}
 			tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
-			output, err := action.RunAction(updated_target,tmpl_filepath,&action.ActionArgs{
+			act_args := action.ActionArgs{
 				RepoPath: repo_path,
 				TempDir: temp_dir,
-				SpecMap: specMap,
-			})
+				SpecMap: map[string]action.ActionFunc{
+					action.ActionVerKey(action.CLISpec, action.Version1): action.NewSpec[action.CommandLineInteraceSpec],
+					action.ActionVerKey(action.DerivedSpec, action.Version1): action.NewSpec[action.DerivedInterfaceSpec],
+				},
+			}
+			out_spec, err := action.RunAction(updated_target,tmpl_filepath,act_args)
 			if err != nil {
 				log.Fatalf("TplFetch RunAction error: %v", err)
+			}
+			output, err := cmdFunc(out_spec,act_args,updated_target.Action)
+			if err != nil {
+				log.Fatalf("TplFetch cmdFunc error: %v", err)
 			}
 			result = strings.TrimSpace(output)
 			lookUpReturn[string(yamlTarget)] = result

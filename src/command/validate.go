@@ -2,12 +2,21 @@ package command
 
 import (
 	"os"
-	//"fmt"
+	"fmt"
 	"log"
 	"github.com/spf13/cobra"
 	"github.com/tr8team/gattai/src/gattai_core"
 	"github.com/tr8team/gattai/src/gattai_core/action"
 )
+
+func ValidateCmdAction(actSpec action.ActionSpec, actArgs action.ActionArgs, actName string) (string, error){
+	result, err := actSpec.TestAction(actName,actArgs)
+	if err != nil {
+		return "", fmt.Errorf("ValidateCmdAction error: %v",err)
+	}
+	log.Println(result)
+	return actSpec.ExecAction(actName,actArgs)
+}
 
 func NewValidateCommand() *cobra.Command {
 
@@ -54,10 +63,7 @@ func NewValidateCommand() *cobra.Command {
 			defer os.RemoveAll(tempDir) // clean up
 
 
-			gattaiFile.LookupTargets(namespace_id, target_id, tempDir,map[string]action.ActionFunc{
-				action.ActionVerKey(action.CLISpec, action.Version1): action.TestCLI,
-				action.ActionVerKey(action.DerivedSpec, action.Version1): action.RedirectDerived,
-			})
+			gattaiFile.LookupTargets(namespace_id, target_id, tempDir,ValidateCmdAction)
 		},
 	}
 
