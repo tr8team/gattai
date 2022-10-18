@@ -100,6 +100,7 @@ targets:
               key: "staging/engineering/remotetest"
               property: "remote-test-env"
         footer: "{{`{{- end }}`}}"
+        output_filepath: test.yaml
         #dataFrom:
         #  - extract:
         #      key: "staging/engineering/remotetest"
