@@ -83,8 +83,25 @@ targets:
             nameOverride: "cache"
             externalName: {{ fetch .Targets.dev.STAGING_REDIS_URL }}
     return:
-      action: local-src/k8s/configmap
+      action: local-src/k8s_rsc/external_secret
       vars:
-        name: envfile
-        namespace: default
-        fromFile: "{{ fetch .Targets.dev.create_file }}"
+        header: "{{`{{- if not .Values.phpfpm.envFile.deploy -}}`}}"
+        name: "{{`{{ .Release.Name -}}`}}-external-secret"
+        labels:
+          tr8.io/type: external-secret
+        secretStoreName: awssm-secretstore
+        secretStoreKind: ClusterSecretStore
+        k8sSecretName: "{{`{{ .Release.Name -}}`}}-{{`{{ .Values.phpfpm.envFile.name }}`}}"
+        creationPolicy: Owner
+        deletionPolicy: Retain
+        data:
+          - secretKey: "{{`{{ .Values.phpfpm.envFile.key }}`}}"
+            remoteRef:
+              key: "staging/engineering/remotetest"
+              property: "remote-test-env"
+        footer: "{{`{{- end }}`}}"
+        #dataFrom:
+        #  - extract:
+        #      key: "staging/engineering/remotetest"
+        #      property: "remote-test-env"
+        #      version: v1
