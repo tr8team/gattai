@@ -1,0 +1,25 @@
+version: v1
+type: DerivedInterface
+params:
+  required:
+    region:
+      desc: The filename to save the content into
+      type: string
+    group_name:
+      desc: The content to be save if any
+      type: string
+spec:
+  repo:
+    src: local
+    config:
+      dir: ./
+
+  inherit_exec:
+    action: aws/query/security_grp
+    {{- with .Vars }}
+    vars:
+      region: {{ .region }}
+      filters:
+        group-name: {{ .group_name }}
+      query: GroupId
+    {{- end }}
