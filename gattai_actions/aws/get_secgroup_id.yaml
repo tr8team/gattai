@@ -3,7 +3,7 @@ type: DerivedInterface
 params:
   required:
     region:
-      desc: The filename to save the content into
+      desc: The region where the resource is at
       type: string
     group_name:
       desc: The content to be save if any
@@ -18,8 +18,8 @@ spec:
     action: aws/query/security_grp
     {{- with .Vars }}
     vars:
-      region: {{ .region }}
+      region: "{{ .region }}"
       filters:
-        group-name: {{ .group_name }}
+        group-name: "{{ .group_name }}"
       query: GroupId
     {{- end }}

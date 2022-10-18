@@ -18,7 +18,7 @@ spec:
     action: aws/query/rds_instance
     {{- with .Vars }}
     vars:
-      region: {{ .region }}
-      identifier: {{ .identifier }}
+      region: "{{ .region }}"
+      identifier: "{{ .identifier }}"
       query: Endpoint.Address
     {{- end }}
