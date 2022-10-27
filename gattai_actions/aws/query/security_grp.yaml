@@ -3,7 +3,7 @@ type: CommandLineInterface
 params:
   required:
     region:
-      desc: The regiion where the resource is at
+      desc: The region where the resource is at
       type: string
     filters:
       desc: The security grp filters
