@@ -1,5 +1,5 @@
 version: v1
-type: CommandLineInterface
+type: DerivedInterface
 params:
   required:
     filename:
@@ -14,18 +14,18 @@ params:
         value:
           type: string
 spec:
-  exec:
-    cmds:
-      - command: echo
-        {{- with .Vars }}
-        args:
-          - |
-          "{{- range $key, $val := .key_value_pairs }}
-          {{ $key }} = \"{{ $val }}\"
-          {{- end }}" > {{ .filename }}
+  repo:
+    src: local
+    config:
+      dir: ./
+
+  inherit_exec:
+    action: write_file
+    {{- with .Vars }}
+    vars:
+      filename: {{ .filename }}
+      content: |
+        {{- range $key, $val := .key_value_pairs }}
+        {{ $key }} = {{ format $val }}
         {{- end }}
-      - command: echo
-        {{- with .Vars }}
-        args:
-          - {{ .filename }}
-        {{- end }}
+    {{- end }}
