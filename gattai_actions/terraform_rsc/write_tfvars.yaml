@@ -20,7 +20,7 @@ spec:
         {{- with .Vars }}
         args:
           - |
-            "{{- range $key, $val := .key_value_pairs -}}
+            "{{- range $key, $val := .key_value_pairs }}
             {{ $key }} = \"{{ $val }}\"
             {{- end }}" > {{ .filename }}
         {{- end }}
