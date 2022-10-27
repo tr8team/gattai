@@ -26,6 +26,6 @@ spec:
       filename: {{ .filename }}
       content: |
         {{- range $key, $val := .key_value_pairs }}
-        {{ $key }} = "`"{{ $val }}"`"
+        {{ $key }} = "\"{{ $val }}\""
         {{- end }}
     {{- end }}
