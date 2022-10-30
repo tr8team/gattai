@@ -107,7 +107,7 @@ func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string
 	if err != nil {
 		return result, fmt.Errorf("GattaiFile:LookupTargets error: %v",err)
 	}
-	lookUpReturn := make(map[string]string)
+	lookUpReturn := MakeLookUp()
 
 	switch namespace_id {
 	case AllNamespaces:
