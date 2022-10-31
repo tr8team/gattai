@@ -2,6 +2,7 @@ package action
 
 import (
 	"fmt"
+	"log"
 	"path"
 	"bytes"
 	"text/template"
@@ -59,6 +60,12 @@ type ActionArgs struct {
 	RepoPath string
 	TempDir string
 	SpecMap map[string]ActionFunc
+}
+
+type ParamField struct {
+	Name string  `yaml:"name"`
+	Desc string `yaml:"desc"`
+	Attribute string `yaml:"attribute"`
 }
 
 func ValPlainType(item interface{}) (string,error) {
@@ -127,6 +134,42 @@ func (actionFile ActionFile) CheckVersion() error {
 		return fmt.Errorf("ActionFile:CheckVersion inalid version error: %s",actionFile.Version)
 	}
 	return nil
+}
+
+func (actionFile ActionFile) GenerateParamFields() []ParamField {
+	result := rec_paramfield_multi_params(actionFile.Params)
+	log.Printf("GenerateParamFields:\n%v\n",result)
+	return result
+}
+
+func rec_paramfield_multi_params(params Params) []ParamField {
+	result := []ParamField{}
+	for key, val := range params.Required{
+		result = append(result, rec_paramfield_single_param(val, key, "<b>(required)</b>")...)
+	}
+	for key, val := range params.Optional{
+		result = append(result, rec_paramfield_single_param(val, key, "<i>(optional)</i>")...)
+	}
+	return result
+}
+
+func rec_paramfield_single_param(val *Param,key string, attrib string) []ParamField {
+	result := []ParamField{}
+	switch val.Type {
+	case StrObj:
+		result = append(result, rec_paramfield_multi_params(val.ObjectOf)...)
+	case StrList:
+		result = append(result, rec_paramfield_single_param(val.ListOf,key,attrib)...)
+	case StrDict:
+		result = append(result, rec_paramfield_single_param(val.DictOf.Value,key,attrib)...)
+	default:
+		result = append(result, ParamField{
+			Name: key,
+			Desc: val.Desc,
+			Attribute: attrib,
+		})
+	}
+	return result
 }
 
 func (actionFile ActionFile) GenerateTargetFromParamsInYaml(filename string) (string,error) {

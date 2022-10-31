@@ -2,7 +2,7 @@ package command
 
 import (
 	"os"
-	//"fmt"
+	"fmt"
 	"log"
 	"path"
 	"bytes"
@@ -13,55 +13,59 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/action"
 )
 
-// func PrintReadMe() {
-// 	content := `
-// <table>
-// <tr>
-// <td> File </td> <td> Fields </td><td>Description</td>
-// </tr>
-// {{- range $key, $val := .Entries }}
-// {{- range $index, $elem := val.Fields }}
-// {{- if equal 0 $index }}
-// <tr>
-// <td rowspan="{{ len .Fields }}">
-// <b>{{ $key }}</b>
-// \n
-// {{ .YamlTarget }}
-// \n
-// </td>
-// {{- else }}
-// <tr>
-// {{- end }}
-// <td>{{ $elem.Name }}<br/>({{ $elem.Attribute }})</td>
-// <td>{{ $elem.Desc }}</td>
-// </tr>
-// {{- end }}
-// {{- end }}
-// </table>
-// 	`
-// }
-
 type ReadMeDoc struct {
-	Entries map[string]ReadMeEntry
+	Entries map[string]ReadMeEntry `yaml:"Entries"`
 }
 
 type ReadMeEntry struct {
-	Fields []struct {
-		Name string
-		Desc string
-		Attribute string
-	}
-	YamlTarget string
+	Fields []action.ParamField `yaml:"fields"`
+	YamlTarget string `yaml:"yamlTarget"`
 }
 
-func ReadActionFilesDir(root_path string, item_name string) map[string]string {
+func (doc ReadMeDoc) Print() (string, error) {
+	log.Printf("ReadMeDoc: %v\n",doc)
+	content := `
+		<table>
+		<tr>
+		<td> File </td> <td> Fields </td><td>Description</td>
+		</tr>
+		{{- range $key, $val := .Entries }}
+		{{- range $index, $elem := $val.fields }}
+		{{- if equal 0 $index }}
+		<tr>
+		<td rowspan="{{ len $val.fields }}">
+		<b>{{ $key }}</b>
+		\n
+		{{ $val.yamlTarget }}
+		\n
+		</td>
+		{{- else }}
+		<tr>
+		{{- end }}
+		<td>{{ $elem.name }}<br/>{{ $elem.attribute }}</td>
+		<td>{{ $elem.desc }}</td>
+		</tr>
+		{{- end }}
+		{{- end }}
+		</table>
+	`
+	tmpl, err := template.New("").Parse(content)
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf,doc)
+	if err != nil {
+		return "", fmt.Errorf("ReadMeDoc Print error: %v",err)
+	}
+	return buf.String(), nil
+}
+
+func ReadActionFilesDir(root_path string, item_name string) map[string]ReadMeEntry {
 	input_path := path.Join(root_path,item_name)
 	fileInfo, err := os.Stat(input_path)
 	if err != nil {
 		log.Fatalf("Error invalid path: %v", err)
 	}
 
-	result := make(map[string]string)
+	result := make(map[string]ReadMeEntry)
 
 	if fileInfo.IsDir() {
 		items, err := os.ReadDir(input_path)
@@ -82,7 +86,7 @@ func ReadActionFilesDir(root_path string, item_name string) map[string]string {
 	return result
 }
 
-func ReadSingleActionFile(root_path string, filename string) string {
+func ReadSingleActionFile(root_path string, filename string) ReadMeEntry {
 	file_path := path.Join(root_path,filename)
 	tmpl_filename := path.Base(file_path)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
@@ -108,11 +112,17 @@ func ReadSingleActionFile(root_path string, filename string) string {
 		log.Fatalf("Error CheckVersion: %v", err)
 	}
 
-	result, err := actionFile.GenerateTargetFromParamsInYaml(file_path)
+	yamlTarget, err := actionFile.GenerateTargetFromParamsInYaml(file_path)
 	if err != nil {
 		log.Fatalf("Error GenerateTargetFromParamsInYaml: %v", err)
 	}
-	return result
+
+	paramField := actionFile.GenerateParamFields()
+
+	return ReadMeEntry {
+		Fields : paramField,
+		YamlTarget : yamlTarget,
+	}
 }
 
 func NewDocumentCommand() *cobra.Command {
@@ -125,10 +135,12 @@ func NewDocumentCommand() *cobra.Command {
 		Short:  "Document an action",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			finalmap := ReadActionFilesDir("",args[0])
-			for key, val  := range finalmap {
-				log.Printf("%s : %s\n",key,val)
-		    }
+			finalmap := ReadMeDoc{ Entries: ReadActionFilesDir("",args[0]) }
+			output, err := finalmap.Print()
+			if err != nil {
+				log.Fatalf("Error NewDocumentCommand: %v", err)
+			}
+			log.Println(output)
 		},
 	}
 
