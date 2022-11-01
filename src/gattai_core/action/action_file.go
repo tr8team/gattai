@@ -63,9 +63,9 @@ type ActionArgs struct {
 }
 
 type ParamField struct {
-	Name string  `yaml:"name"`
-	Desc string `yaml:"desc"`
-	Attribute string `yaml:"attribute"`
+	Name string  `yaml:"Name"`
+	Desc string `yaml:"Desc"`
+	Attribute string `yaml:"Attribute"`
 }
 
 func ValPlainType(item interface{}) (string,error) {

@@ -18,44 +18,44 @@ type ReadMeDoc struct {
 }
 
 type ReadMeEntry struct {
-	Fields []action.ParamField `yaml:"fields"`
-	YamlTarget string `yaml:"yamlTarget"`
+	Fields []action.ParamField `yaml:"Fields"`
+	YamlTarget string `yaml:"YamlTarget"`
 }
 
-func (doc ReadMeDoc) Print() (string, error) {
+func (doc ReadMeDoc) Print() (bytes.Buffer, error) {
 	log.Printf("ReadMeDoc: %v\n",doc)
 	content := `
-		<table>
-		<tr>
-		<td> File </td> <td> Fields </td><td>Description</td>
-		</tr>
-		{{- range $key, $val := .Entries }}
-		{{- range $index, $elem := $val.fields }}
-		{{- if equal 0 $index }}
-		<tr>
-		<td rowspan="{{ len $val.fields }}">
-		<b>{{ $key }}</b>
-		\n
-		{{ $val.yamlTarget }}
-		\n
-		</td>
-		{{- else }}
-		<tr>
-		{{- end }}
-		<td>{{ $elem.name }}<br/>{{ $elem.attribute }}</td>
-		<td>{{ $elem.desc }}</td>
-		</tr>
-		{{- end }}
-		{{- end }}
-		</table>
+<table>
+<tr>
+<td> File </td> <td> Fields </td><td>Description</td>
+</tr>
+{{- range $key, $val := .Entries }}
+{{- range $i, $elem := $val.Fields }}
+{{- if eq $i 0 }}
+<tr>
+<td rowspan="{{ len $val.Fields }}">
+<b>{{ $key }}</b>
+
+{{ $val.YamlTarget }}
+
+</td>
+{{- else }}
+<tr>
+{{- end }}
+<td>{{ $elem.Name }}<br/>{{ $elem.Attribute }}</td>
+<td>{{ $elem.Desc }}</td>
+</tr>
+{{- end }}
+{{- end }}
+</table>
 	`
 	tmpl, err := template.New("").Parse(content)
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf,doc)
 	if err != nil {
-		return "", fmt.Errorf("ReadMeDoc Print error: %v",err)
+		return buf, fmt.Errorf("ReadMeDoc Print error: %v",err)
 	}
-	return buf.String(), nil
+	return buf, nil
 }
 
 func ReadActionFilesDir(root_path string, item_name string) map[string]ReadMeEntry {
@@ -121,7 +121,7 @@ func ReadSingleActionFile(root_path string, filename string) ReadMeEntry {
 
 	return ReadMeEntry {
 		Fields : paramField,
-		YamlTarget : yamlTarget,
+		YamlTarget : fmt.Sprintf("```yaml\n%s\n```",yamlTarget),
 	}
 }
 
@@ -136,11 +136,15 @@ func NewDocumentCommand() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			finalmap := ReadMeDoc{ Entries: ReadActionFilesDir("",args[0]) }
-			output, err := finalmap.Print()
+			output_buf, err := finalmap.Print()
 			if err != nil {
 				log.Fatalf("Error NewDocumentCommand: %v", err)
 			}
-			log.Println(output)
+			err = os.WriteFile(path.Join(args[0],"README.md"), output_buf.Bytes(),0644)
+			if err != nil {
+				log.Fatalf("Error NewDocumentCommand: %v", err)
+			}
+			log.Println(output_buf.String())
 		},
 	}
 
