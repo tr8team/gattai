@@ -19,7 +19,7 @@ const (
 )
 
 const (
-	GattaiFileDefault string = "GattaiFile.yaml"
+	GattaiFileDefault string = "Gattaifile.yaml"
 	GattaiTmpFolder string = "gattaitmp"
 )
 
