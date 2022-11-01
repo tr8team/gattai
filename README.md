@@ -108,12 +108,12 @@ There are 2 types of files needed for Gattai to work
 
 ```nix
 atomi = (
-      with import (fetchTarball "https://github.com/kirinnee/test-nix-repo/archive/refs/tags/v10.0.0.tar.gz");
-      {
-        inherit
-          gattai;
-      }
-    );
+    with import (fetchTarball "https://github.com/kirinnee/test-nix-repo/archive/refs/tags/v10.0.0.tar.gz");
+    {
+    inherit
+        gattai;
+    }
+);
 ```
 
 # Usage
