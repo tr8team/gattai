@@ -26,7 +26,7 @@ There are 2 types of files needed for Gattai to work
       config:
         url: https://github.com/tr8team/gattai.git
         branch: develop
-  			dir: gattai_actions
+        dir: gattai_actions
 
   targets:
     dev:
@@ -131,7 +131,7 @@ repos:
     config:
       url: https://github.com/tr8team/gattai.git
       branch: develop
-			dir: gattai_actions
+      dir: gattai_actions
 
 targets:
   dev:
@@ -203,7 +203,7 @@ params:
     identifier:
       desc: The rds cluster identifier
       type: string
-	optional:
+  optional:
     query:
       desc: The rds cluster query
       type: string
@@ -286,8 +286,8 @@ spec:
     src: local
     config:
       dir: ./
-	override_test:
-		expected:
+  override_test:
+	expected:
       condition: equal
       value: 1
     cmds:
