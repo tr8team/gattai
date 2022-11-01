@@ -287,7 +287,7 @@ spec:
     config:
       dir: ./
   override_test:
-	expected:
+    expected:
       condition: equal
       value: 1
     cmds:
