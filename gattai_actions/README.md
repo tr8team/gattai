@@ -52,12 +52,12 @@ vars:
 ```
 
 </td>
-<td>region<br/><b>(required)</b></td>
-<td>The region where the resource is at</td>
-</tr>
-<tr>
 <td>identifier<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
+</tr>
+<tr>
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
 </tr>
 <tr>
 <td rowspan="2">
@@ -193,7 +193,7 @@ vars:
 </tr>
 <tr>
 <td>filters<br/><b>(required)</b></td>
-<td></td>
+<td>The security grp filters</td>
 </tr>
 <tr>
 <td>query<br/><b>(required)</b></td>
@@ -232,7 +232,7 @@ vars:
 </tr>
 <tr>
 <td>fromLiterals<br/><i>(optional)</i></td>
-<td></td>
+<td>Create kube configmap from literals</td>
 </tr>
 <tr>
 <td rowspan="5">
@@ -250,16 +250,12 @@ vars:
 ```
 
 </td>
-<td>namespace<br/><b>(required)</b></td>
-<td>The kube secret namespace</td>
-</tr>
-<tr>
 <td>name<br/><b>(required)</b></td>
 <td>The kube secret name</td>
 </tr>
 <tr>
-<td>fromLiterals<br/><i>(optional)</i></td>
-<td></td>
+<td>namespace<br/><b>(required)</b></td>
+<td>The kube secret namespace</td>
 </tr>
 <tr>
 <td>fromFile<br/><i>(optional)</i></td>
@@ -268,6 +264,10 @@ vars:
 <tr>
 <td>fromEnvFile<br/><i>(optional)</i></td>
 <td>Create kube secret from envfile</td>
+</tr>
+<tr>
+<td>fromLiterals<br/><i>(optional)</i></td>
+<td>Create kube secret from literals</td>
 </tr>
 <tr>
 <td rowspan="7">
@@ -287,6 +287,10 @@ vars:
 ```
 
 </td>
+<td>secretStoreName<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
+</tr>
+<tr>
 <td>secretStoreKind<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
@@ -307,10 +311,6 @@ vars:
 <td>The content to be save if any</td>
 </tr>
 <tr>
-<td>secretStoreName<br/><b>(required)</b></td>
-<td>The content to be save if any</td>
-</tr>
-<tr>
 <td>labels<br/><i>(optional)</i></td>
 <td>The content to be save if any</td>
 </tr>
@@ -327,16 +327,16 @@ vars:
 ```
 
 </td>
-<td>identifier<br/><b>(required)</b></td>
-<td>The one password identifier</td>
-</tr>
-<tr>
 <td>label<br/><b>(required)</b></td>
 <td>The one password label</td>
 </tr>
 <tr>
 <td>vault<br/><b>(required)</b></td>
 <td>The one password vault</td>
+</tr>
+<tr>
+<td>identifier<br/><b>(required)</b></td>
+<td>The one password identifier</td>
 </tr>
 <tr>
 <td rowspan="1">
@@ -370,7 +370,7 @@ vars:
 </tr>
 <tr>
 <td>key_value_pairs<br/><b>(required)</b></td>
-<td></td>
+<td>The key value pairs for tfvars file</td>
 </tr>
 <tr>
 <td rowspan="2">

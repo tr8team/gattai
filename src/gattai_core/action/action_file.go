@@ -159,9 +159,23 @@ func rec_paramfield_single_param(val *Param,key string, attrib string) []ParamFi
 	case StrObj:
 		result = append(result, rec_paramfield_multi_params(val.ObjectOf)...)
 	case StrList:
-		result = append(result, rec_paramfield_single_param(val.ListOf,key,attrib)...)
+		result = append(result, ParamField{
+			Name: key,
+			Desc: val.Desc,
+			Attribute: attrib,
+		})
+		if val.ListOf.Type == StrObj {
+			result = append(result, rec_paramfield_multi_params(val.ListOf.ObjectOf)...)
+		}
 	case StrDict:
-		result = append(result, rec_paramfield_single_param(val.DictOf.Value,key,attrib)...)
+		result = append(result, ParamField{
+			Name: key,
+			Desc: val.Desc,
+			Attribute: attrib,
+		})
+		if val.DictOf.Value.Type == StrObj {
+			result = append(result, rec_paramfield_multi_params(val.DictOf.Value.ObjectOf)...)
+		}
 	default:
 		result = append(result, ParamField{
 			Name: key,
