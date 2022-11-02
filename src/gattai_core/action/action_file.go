@@ -33,6 +33,7 @@ type ActionFile struct {
 	Version string `yaml:"version"`
 	Type string `yaml:"type"`
 	Params Params `yaml:"params"`
+	//Deprecated string `yaml:"deprecated"`
 	Spec interface{} `yaml:"spec"`
 }
 

@@ -1,0 +1,24 @@
+version: v1
+type: DerivedInterface
+params:
+  required:
+    region:
+      desc: The region where the resource is at
+      type: string
+    identifier:
+      desc: The content to be save if any
+      type: string
+spec:
+  repo:
+    src: local
+    config:
+      dir: ./
+
+  inherit_exec:
+    action: aws/query/elasticache_replica_grp
+    {{- with .Vars }}
+    vars:
+      region: "{{ .region }}"
+      identifier: "{{ .identifier }}"
+      query: NodeGroups[0].PrimaryEndpoint.Address
+    {{- end }}
