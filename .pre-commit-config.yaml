@@ -60,7 +60,7 @@ repos:
       - id: gattai-doc
         name: Update README.md for gattai doc
         entry: pls gattai:doc
-        files: ^.*\.(yaml|yml)$
+        files: ^.*\.yaml$
         pass_filenames: false
         language: system
   - repo: https://github.com/antonbabenko/pre-commit-terraform

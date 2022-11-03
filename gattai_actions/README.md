@@ -4,6 +4,44 @@
 </tr>
 <tr>
 <td rowspan="2">
+<b>gattai_actions/aws/get_elasticache_cluster_url.yaml</b>
+
+```yaml
+action: <repo_id>/gattai_actions/aws/get_elasticache_cluster_url
+vars:
+  identifier: '"string"'
+  region: '"string"'
+```
+
+</td>
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>identifier<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
+</tr>
+<tr>
+<td rowspan="2">
+<b>gattai_actions/aws/get_elasticache_node_grp_url.yaml</b>
+
+```yaml
+action: <repo_id>/gattai_actions/aws/get_elasticache_node_grp_url
+vars:
+  identifier: '"string"'
+  region: '"string"'
+```
+
+</td>
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>identifier<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
+</tr>
+<tr>
+<td rowspan="2">
 <b>gattai_actions/aws/get_elasticache_replica_grp_url.yaml</b>
 
 ```yaml
@@ -52,12 +90,12 @@ vars:
 ```
 
 </td>
-<td>identifier<br/><b>(required)</b></td>
-<td>The content to be save if any</td>
-</tr>
-<tr>
 <td>region<br/><b>(required)</b></td>
 <td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>identifier<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
 </tr>
 <tr>
 <td rowspan="2">
@@ -163,16 +201,16 @@ vars:
 ```
 
 </td>
-<td>region<br/><b>(required)</b></td>
-<td>The regiion where the resource is at</td>
-</tr>
-<tr>
 <td>identifier<br/><b>(required)</b></td>
 <td>The rds instance identifier</td>
 </tr>
 <tr>
 <td>query<br/><b>(required)</b></td>
 <td>The rds instance query</td>
+</tr>
+<tr>
+<td>region<br/><b>(required)</b></td>
+<td>The regiion where the resource is at</td>
 </tr>
 <tr>
 <td rowspan="3">
@@ -188,16 +226,16 @@ vars:
 ```
 
 </td>
-<td>region<br/><b>(required)</b></td>
-<td>The region where the resource is at</td>
-</tr>
-<tr>
 <td>filters<br/><b>(required)</b></td>
 <td>The security grp filters</td>
 </tr>
 <tr>
 <td>query<br/><b>(required)</b></td>
 <td>The security grp query</td>
+</tr>
+<tr>
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
 </tr>
 <tr>
 <td rowspan="5">
@@ -327,16 +365,16 @@ vars:
 ```
 
 </td>
+<td>identifier<br/><b>(required)</b></td>
+<td>The one password identifier</td>
+</tr>
+<tr>
 <td>label<br/><b>(required)</b></td>
 <td>The one password label</td>
 </tr>
 <tr>
 <td>vault<br/><b>(required)</b></td>
 <td>The one password vault</td>
-</tr>
-<tr>
-<td>identifier<br/><b>(required)</b></td>
-<td>The one password identifier</td>
 </tr>
 <tr>
 <td rowspan="1">
@@ -384,12 +422,12 @@ vars:
 ```
 
 </td>
-<td>filename<br/><b>(required)</b></td>
-<td>The filename to save the content into</td>
-</tr>
-<tr>
 <td>content<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
+</tr>
+<tr>
+<td>filename<br/><b>(required)</b></td>
+<td>The filename to save the content into</td>
 </tr>
 <tr>
 <td rowspan="2">
