@@ -3,32 +3,38 @@
 <td> File </td> <td> Fields </td><td>Description</td>
 </tr>
 <tr>
-<td rowspan="2">
+<td rowspan="3">
 <b>gattai_actions/aws/get_elasticache_cluster_url.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/get_elasticache_cluster_url
 vars:
   identifier: '"string"'
+  profile: '"string"'
   region: '"string"'
 ```
 
 </td>
-<td>region<br/><b>(required)</b></td>
-<td>The region where the resource is at</td>
-</tr>
-<tr>
 <td>identifier<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
 <tr>
-<td rowspan="2">
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
+</tr>
+<tr>
+<td rowspan="3">
 <b>gattai_actions/aws/get_elasticache_node_grp_url.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/get_elasticache_node_grp_url
 vars:
   identifier: '"string"'
+  profile: '"string"'
   region: '"string"'
 ```
 
@@ -41,32 +47,42 @@ vars:
 <td>The content to be save if any</td>
 </tr>
 <tr>
-<td rowspan="2">
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
+</tr>
+<tr>
+<td rowspan="3">
 <b>gattai_actions/aws/get_elasticache_replica_grp_url.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/get_elasticache_replica_grp_url
 vars:
   identifier: '"string"'
+  profile: '"string"'
   region: '"string"'
 ```
 
 </td>
-<td>region<br/><b>(required)</b></td>
-<td>The region where the resource is at</td>
-</tr>
-<tr>
 <td>identifier<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
 <tr>
-<td rowspan="2">
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
+</tr>
+<tr>
+<td rowspan="3">
 <b>gattai_actions/aws/get_rds_cluster_url.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/get_rds_cluster_url
 vars:
   identifier: '"string"'
+  profile: '"string"'
   region: '"string"'
 ```
 
@@ -79,32 +95,42 @@ vars:
 <td>The content to be save if any</td>
 </tr>
 <tr>
-<td rowspan="2">
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
+</tr>
+<tr>
+<td rowspan="3">
 <b>gattai_actions/aws/get_rds_instance_url.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/get_rds_instance_url
 vars:
   identifier: '"string"'
+  profile: '"string"'
   region: '"string"'
 ```
 
 </td>
-<td>region<br/><b>(required)</b></td>
-<td>The region where the resource is at</td>
-</tr>
-<tr>
 <td>identifier<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
 <tr>
-<td rowspan="2">
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
+</tr>
+<tr>
+<td rowspan="3">
 <b>gattai_actions/aws/get_secgroup_id.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/get_secgroup_id
 vars:
   group_name: '"string"'
+  profile: '"string"'
   region: '"string"'
 ```
 
@@ -117,44 +143,54 @@ vars:
 <td>The content to be save if any</td>
 </tr>
 <tr>
-<td rowspan="3">
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
+</tr>
+<tr>
+<td rowspan="4">
 <b>gattai_actions/aws/get_secret_value.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/get_secret_value
 vars:
   identifier: '"string"'
+  profile: '"string"'
   property: '"string"'
   region: '"string"'
 ```
 
 </td>
+<td>identifier<br/><b>(required)</b></td>
+<td>The secret identifier</td>
+</tr>
+<tr>
 <td>region<br/><b>(required)</b></td>
 <td>The region where the resource is at</td>
 </tr>
 <tr>
-<td>identifier<br/><b>(required)</b></td>
-<td>The secret identifier</td>
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
 </tr>
 <tr>
 <td>property<br/><i>(optional)</i></td>
 <td>The property in secret to retrieve</td>
 </tr>
 <tr>
-<td rowspan="3">
+<td rowspan="4">
 <b>gattai_actions/aws/query/elasticache_replica_grp.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/query/elasticache_replica_grp
 vars:
   identifier: '"string"'
+  profile: '"string"'
   query: '"string"'
   region: '"string"'
 ```
 
 </td>
 <td>region<br/><b>(required)</b></td>
-<td>The regiion where the resource is at</td>
+<td>The region where the resource is at</td>
 </tr>
 <tr>
 <td>identifier<br/><b>(required)</b></td>
@@ -165,13 +201,18 @@ vars:
 <td>The elasticache replica grp query</td>
 </tr>
 <tr>
-<td rowspan="3">
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
+</tr>
+<tr>
+<td rowspan="4">
 <b>gattai_actions/aws/query/rds_cluster.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/query/rds_cluster
 vars:
   identifier: '"string"'
+  profile: '"string"'
   query: '"string"'
   region: '"string"'
 ```
@@ -189,18 +230,27 @@ vars:
 <td>The rds cluster query</td>
 </tr>
 <tr>
-<td rowspan="3">
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
+</tr>
+<tr>
+<td rowspan="4">
 <b>gattai_actions/aws/query/rds_instance.yaml</b>
 
 ```yaml
 action: <repo_id>/gattai_actions/aws/query/rds_instance
 vars:
   identifier: '"string"'
+  profile: '"string"'
   query: '"string"'
   region: '"string"'
 ```
 
 </td>
+<td>region<br/><b>(required)</b></td>
+<td>The regiion where the resource is at</td>
+</tr>
+<tr>
 <td>identifier<br/><b>(required)</b></td>
 <td>The rds instance identifier</td>
 </tr>
@@ -209,11 +259,11 @@ vars:
 <td>The rds instance query</td>
 </tr>
 <tr>
-<td>region<br/><b>(required)</b></td>
-<td>The regiion where the resource is at</td>
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
 </tr>
 <tr>
-<td rowspan="3">
+<td rowspan="4">
 <b>gattai_actions/aws/query/security_grp.yaml</b>
 
 ```yaml
@@ -221,11 +271,16 @@ action: <repo_id>/gattai_actions/aws/query/security_grp
 vars:
   filters:
     '"string"': '"string"'
+  profile: '"string"'
   query: '"string"'
   region: '"string"'
 ```
 
 </td>
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
+</tr>
+<tr>
 <td>filters<br/><b>(required)</b></td>
 <td>The security grp filters</td>
 </tr>
@@ -234,8 +289,8 @@ vars:
 <td>The security grp query</td>
 </tr>
 <tr>
-<td>region<br/><b>(required)</b></td>
-<td>The region where the resource is at</td>
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
 </tr>
 <tr>
 <td rowspan="5">
@@ -296,16 +351,16 @@ vars:
 <td>The kube secret namespace</td>
 </tr>
 <tr>
-<td>fromFile<br/><i>(optional)</i></td>
-<td>Create kube secret from file</td>
-</tr>
-<tr>
 <td>fromEnvFile<br/><i>(optional)</i></td>
 <td>Create kube secret from envfile</td>
 </tr>
 <tr>
 <td>fromLiterals<br/><i>(optional)</i></td>
 <td>Create kube secret from literals</td>
+</tr>
+<tr>
+<td>fromFile<br/><i>(optional)</i></td>
+<td>Create kube secret from file</td>
 </tr>
 <tr>
 <td rowspan="7">
@@ -325,6 +380,10 @@ vars:
 ```
 
 </td>
+<td>name<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
+</tr>
+<tr>
 <td>secretStoreName<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
@@ -342,10 +401,6 @@ vars:
 </tr>
 <tr>
 <td>deletionPolicy<br/><b>(required)</b></td>
-<td>The content to be save if any</td>
-</tr>
-<tr>
-<td>name<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
 <tr>
@@ -422,12 +477,12 @@ vars:
 ```
 
 </td>
-<td>content<br/><b>(required)</b></td>
-<td>The content to be save if any</td>
-</tr>
-<tr>
 <td>filename<br/><b>(required)</b></td>
 <td>The filename to save the content into</td>
+</tr>
+<tr>
+<td>content<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
 </tr>
 <tr>
 <td rowspan="2">

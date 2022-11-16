@@ -70,7 +70,7 @@ func NewRunCommand() *cobra.Command {
 				log.Fatalf("Error creating temporary folder: %v", err)
 			}
 			if keepTempFiles == false {
-				log.Println("Clean up temp files!")
+				log.Printf("Clean up temp files in: %s", tempDir)
 				defer os.RemoveAll(tempDir) // clean up
 			}
 

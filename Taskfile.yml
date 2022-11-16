@@ -29,13 +29,13 @@ tasks:
   run:app:
     desc: Run the go program
     cmds:
-      - go run . document ./gattai_actions
+      - go run . {{ .CLI_ARGS }}
 
   #Pre-commit
   gattai:doc:
     desc: Run gattai doc on gattai_actions
     cmds:
-      - go run . {{ .CLI_ARGS }}
+      - go run . document ./gattai_actions
 
   # Utility
   lint:
