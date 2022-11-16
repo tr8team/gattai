@@ -3,13 +3,17 @@ type: CommandLineInterface
 params:
   required:
     region:
-      desc: The regiion where the resource is at
+      desc: The region where the resource is at
       type: string
     identifier:
       desc: The elasticache replica grp identifier
       type: string
     query:
       desc: The elasticache replica grp query
+      type: string
+  optional:
+    profile:
+      desc: The profile to use for accessing
       type: string
 spec:
   runtime_env:
@@ -25,6 +29,9 @@ spec:
       - command: aws
         {{- with .Vars }}
         args:
+          {{- with .profile }}
+          - --profile {{ . }}
+          {{- end }}
           {{- with .region }}
           - --region {{ . }}
           {{- end }}

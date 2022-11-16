@@ -8,6 +8,10 @@ params:
     identifier:
       desc: The content to be save if any
       type: string
+  optional:
+    profile:
+      desc: The profile to use for accessing
+      type: string
 spec:
   repo:
     src: local
@@ -18,6 +22,9 @@ spec:
     action: aws/query/rds_cluster
     {{- with .Vars }}
     vars:
+      {{- with .profile }}
+      profile: "{{ . }}"
+      {{- end }}
       region: "{{ .region }}"
       identifier: "{{ .identifier }}"
       query: Endpoint

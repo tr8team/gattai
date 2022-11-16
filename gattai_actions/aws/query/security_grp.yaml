@@ -16,6 +16,10 @@ params:
     query:
       desc: The security grp query
       type: string
+  optional:
+    profile:
+      desc: The profile to use for accessing
+      type: string
 spec:
   runtime_env:
     nix_shell:
@@ -47,6 +51,9 @@ spec:
       - command: aws
         {{- with .Vars }}
         args:
+          {{- with .profile }}
+          - --profile {{ . }}
+          {{- end }}
           {{- with .region }}
           - --region {{ . }}
           {{- end }}
