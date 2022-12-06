@@ -8,15 +8,15 @@ tasks:
   md:
     desc: Formats Markdown with prettier
     cmds:
-      - prettier -w "**/*.MD" "!vendor"
-      - prettier -w "**/*.md" "!vendor"
+      - prettier -w "**/*.MD" "!vendor" "!gattai_actions"
+      - prettier -w "**/*.md" "!vendor" "!gattai_actions"
     ignore_error: true
 
   yaml:
     desc: Formats YAML with prettier
     cmds:
-      - prettier -w "**/*.yaml" "!vendor"
-      - prettier -w "**/*.yml" "!vendor"
+      - prettier -w "**/*.yaml" "!vendor" "!gattai_actions"
+      - prettier -w "**/*.yml" "!vendor" "!gattai_actions"
 
   nix:
     desc: Formats Nix files

@@ -31,7 +31,12 @@ repos:
         files: ^.*\.(yaml|yml)$
         pass_filenames: false
         language: system
-
+      # - id: gattai-doc
+      #   name: Update README.md for gattai doc
+      #   entry: pls gattai:doc
+      #   files: ^.*\.yaml$
+      #   pass_filenames: false
+      #   language: system
       - id: md-fmt
         name: Format Markdown with prettier
         entry: pls fmt:md
@@ -57,12 +62,7 @@ repos:
         files: ^.*\.tf$
         language: system
         pass_filenames: false
-      - id: gattai-doc
-        name: Update README.md for gattai doc
-        entry: pls gattai:doc
-        files: ^.*\.yaml$
-        pass_filenames: false
-        language: system
+
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.73.0
     hooks:

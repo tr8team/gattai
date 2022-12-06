@@ -1,3 +1,4 @@
+
 <table>
 <tr>
 <td> File </td> <td> Fields </td><td>Description</td>
@@ -12,15 +13,16 @@ vars:
   identifier: '"string"'
   profile: '"string"'
   region: '"string"'
+
 ```
 
 </td>
-<td>identifier<br/><b>(required)</b></td>
-<td>The content to be save if any</td>
-</tr>
-<tr>
 <td>region<br/><b>(required)</b></td>
 <td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>identifier<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
 </tr>
 <tr>
 <td>profile<br/><i>(optional)</i></td>
@@ -36,6 +38,7 @@ vars:
   identifier: '"string"'
   profile: '"string"'
   region: '"string"'
+
 ```
 
 </td>
@@ -60,15 +63,16 @@ vars:
   identifier: '"string"'
   profile: '"string"'
   region: '"string"'
+
 ```
 
 </td>
-<td>identifier<br/><b>(required)</b></td>
-<td>The content to be save if any</td>
-</tr>
-<tr>
 <td>region<br/><b>(required)</b></td>
 <td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>identifier<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
 </tr>
 <tr>
 <td>profile<br/><i>(optional)</i></td>
@@ -84,6 +88,7 @@ vars:
   identifier: '"string"'
   profile: '"string"'
   region: '"string"'
+
 ```
 
 </td>
@@ -108,15 +113,16 @@ vars:
   identifier: '"string"'
   profile: '"string"'
   region: '"string"'
+
 ```
 
 </td>
-<td>identifier<br/><b>(required)</b></td>
-<td>The content to be save if any</td>
-</tr>
-<tr>
 <td>region<br/><b>(required)</b></td>
 <td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>identifier<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
 </tr>
 <tr>
 <td>profile<br/><i>(optional)</i></td>
@@ -132,6 +138,7 @@ vars:
   group_name: '"string"'
   profile: '"string"'
   region: '"string"'
+
 ```
 
 </td>
@@ -157,15 +164,16 @@ vars:
   profile: '"string"'
   property: '"string"'
   region: '"string"'
+
 ```
 
 </td>
-<td>identifier<br/><b>(required)</b></td>
-<td>The secret identifier</td>
-</tr>
-<tr>
 <td>region<br/><b>(required)</b></td>
 <td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>identifier<br/><b>(required)</b></td>
+<td>The secret identifier</td>
 </tr>
 <tr>
 <td>profile<br/><i>(optional)</i></td>
@@ -186,6 +194,7 @@ vars:
   profile: '"string"'
   query: '"string"'
   region: '"string"'
+
 ```
 
 </td>
@@ -215,6 +224,7 @@ vars:
   profile: '"string"'
   query: '"string"'
   region: '"string"'
+
 ```
 
 </td>
@@ -244,6 +254,7 @@ vars:
   profile: '"string"'
   query: '"string"'
   region: '"string"'
+
 ```
 
 </td>
@@ -274,19 +285,20 @@ vars:
   profile: '"string"'
   query: '"string"'
   region: '"string"'
+
 ```
 
 </td>
-<td>region<br/><b>(required)</b></td>
-<td>The region where the resource is at</td>
-</tr>
-<tr>
 <td>filters<br/><b>(required)</b></td>
 <td>The security grp filters</td>
 </tr>
 <tr>
 <td>query<br/><b>(required)</b></td>
 <td>The security grp query</td>
+</tr>
+<tr>
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
 </tr>
 <tr>
 <td>profile<br/><i>(optional)</i></td>
@@ -305,6 +317,7 @@ vars:
     '"string"': '"string"'
   name: '"string"'
   namespace: '"string"'
+
 ```
 
 </td>
@@ -340,6 +353,7 @@ vars:
     '"string"': '"string"'
   name: '"string"'
   namespace: '"string"'
+
 ```
 
 </td>
@@ -351,16 +365,16 @@ vars:
 <td>The kube secret namespace</td>
 </tr>
 <tr>
-<td>fromEnvFile<br/><i>(optional)</i></td>
-<td>Create kube secret from envfile</td>
-</tr>
-<tr>
 <td>fromLiterals<br/><i>(optional)</i></td>
 <td>Create kube secret from literals</td>
 </tr>
 <tr>
 <td>fromFile<br/><i>(optional)</i></td>
 <td>Create kube secret from file</td>
+</tr>
+<tr>
+<td>fromEnvFile<br/><i>(optional)</i></td>
+<td>Create kube secret from envfile</td>
 </tr>
 <tr>
 <td rowspan="7">
@@ -377,6 +391,7 @@ vars:
   name: '"string"'
   secretStoreKind: '"string"'
   secretStoreName: '"string"'
+
 ```
 
 </td>
@@ -417,6 +432,7 @@ vars:
   identifier: '"string"'
   label: '"string"'
   vault: '"string"'
+
 ```
 
 </td>
@@ -439,6 +455,7 @@ vars:
 action: <repo_id>/gattai_actions/print_output
 vars:
   content: '"string"'
+
 ```
 
 </td>
@@ -455,15 +472,16 @@ vars:
   filename: '"string"'
   key_value_pairs:
     '"string"': '"string"'
+
 ```
 
 </td>
-<td>filename<br/><b>(required)</b></td>
-<td>The filename to save the content into</td>
-</tr>
-<tr>
 <td>key_value_pairs<br/><b>(required)</b></td>
 <td>The key value pairs for tfvars file</td>
+</tr>
+<tr>
+<td>filename<br/><b>(required)</b></td>
+<td>The filename to save the content into</td>
 </tr>
 <tr>
 <td rowspan="2">
@@ -474,6 +492,7 @@ action: <repo_id>/gattai_actions/write_file
 vars:
   content: '"string"'
   filename: '"string"'
+
 ```
 
 </td>
@@ -493,6 +512,7 @@ action: <repo_id>/gattai_actions/write_temp_file
 vars:
   content: '"string"'
   filename: '"string"'
+
 ```
 
 </td>
