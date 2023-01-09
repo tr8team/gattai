@@ -2,10 +2,9 @@
 let
   pkgs = {
     atomi = (
-      with import (fetchTarball "https://github.com/kirinnee/test-nix-repo/archive/refs/tags/v9.2.0.tar.gz");
+      with import (fetchTarball "https://github.com/kirinnee/test-nix-repo/archive/refs/tags/v15.3.0.tar.gz");
       {
-        inherit pls spacectl;
-        idea-u = jetbrains.idea-ultimate;
+        inherit pls spacectl upstash;
       }
     );
     "Unstable 4th July 2022" = (

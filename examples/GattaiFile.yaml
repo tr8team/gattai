@@ -56,6 +56,11 @@ targets:
         filters:
           group-name: "*staging-systems-engineering-web-app*"
         query: GroupId
+    UPSTASH_ENDPOINT:
+      action: local-src/upstash/query/upstash_redis_database
+      vars:
+        identifier: "a215fc0a-04c5-4693-9e83-de5792915cf3"
+        query: "endpoint"
     create_file:
       action: local-src/write_temp_file
       vars:
