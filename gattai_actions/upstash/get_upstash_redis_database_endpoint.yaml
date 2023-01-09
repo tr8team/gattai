@@ -16,4 +16,5 @@ spec:
     {{- with .Vars }}
     vars:
       identifier: "{{ .identifier }}"
+      query: "endpoint"
     {{- end }}
