@@ -1,0 +1,20 @@
+version: v1
+type: DerivedInterface
+params:
+  required:
+    identifier:
+      desc: The content to be save if any
+      type: string
+spec:
+  repo:
+    src: local
+    config:
+      dir: ./
+
+  inherit_exec:
+    action: upstash/query/upstash_redis_database
+    {{- with .Vars }}
+    vars:
+      identifier: "{{ .identifier }}"
+      query: "endpoint"
+    {{- end }}

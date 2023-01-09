@@ -11,7 +11,6 @@ with pkgs;
   ];
 
   dev = [
-    idea-u
   ];
 
   main = [
@@ -27,6 +26,7 @@ with pkgs;
     kubectx
     _1password
     go
+    upstash
   ];
 
   lint = [

@@ -1,0 +1,47 @@
+version: v1
+type: CommandLineInterface
+params:
+  required:
+    identifier:
+      desc: The upstash redis identifier
+      type: string
+    query:
+      desc: The upstash redis parameter to be queried (top-level)
+      type: string
+spec:
+  runtime_env:
+    nix_shell:
+      aws:
+        name: upstash
+        version: "https://github.com/kirinnee/test-nix-repo/archive/refs/tags/v15.3.0.tar.gz"
+  test:
+    expected:
+      condition: equal
+      value: 1
+    cmds:
+      - command: upstash
+        {{- with .Vars }}
+        args:
+          - redis
+          - get
+          {{- with .identifier }}
+          - --id {{ . }}
+          {{- end }}
+          - --json
+          - "| jq '. | length'"
+        {{- end }}
+  exec:
+    cmds:
+      - command: upstash
+        {{- with .Vars }}
+        args:
+          - redis
+          - get
+          {{- with .identifier }}
+          - --id {{ . }}
+          {{- end }}
+          - --json
+          {{- with .query }}
+          - "| jq '.{{ . }}'"
+          {{- end }}
+        {{- end }}
