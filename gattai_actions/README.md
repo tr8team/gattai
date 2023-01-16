@@ -42,12 +42,12 @@ vars:
 ```
 
 </td>
-<td>region<br/><b>(required)</b></td>
-<td>The region where the resource is at</td>
-</tr>
-<tr>
 <td>identifier<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
+</tr>
+<tr>
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
 </tr>
 <tr>
 <td>profile<br/><i>(optional)</i></td>
@@ -289,16 +289,16 @@ vars:
 ```
 
 </td>
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
+</tr>
+<tr>
 <td>filters<br/><b>(required)</b></td>
 <td>The security grp filters</td>
 </tr>
 <tr>
 <td>query<br/><b>(required)</b></td>
 <td>The security grp query</td>
-</tr>
-<tr>
-<td>region<br/><b>(required)</b></td>
-<td>The region where the resource is at</td>
 </tr>
 <tr>
 <td>profile<br/><i>(optional)</i></td>
@@ -357,16 +357,12 @@ vars:
 ```
 
 </td>
-<td>name<br/><b>(required)</b></td>
-<td>The kube secret name</td>
-</tr>
-<tr>
 <td>namespace<br/><b>(required)</b></td>
 <td>The kube secret namespace</td>
 </tr>
 <tr>
-<td>fromLiterals<br/><i>(optional)</i></td>
-<td>Create kube secret from literals</td>
+<td>name<br/><b>(required)</b></td>
+<td>The kube secret name</td>
 </tr>
 <tr>
 <td>fromFile<br/><i>(optional)</i></td>
@@ -375,6 +371,10 @@ vars:
 <tr>
 <td>fromEnvFile<br/><i>(optional)</i></td>
 <td>Create kube secret from envfile</td>
+</tr>
+<tr>
+<td>fromLiterals<br/><i>(optional)</i></td>
+<td>Create kube secret from literals</td>
 </tr>
 <tr>
 <td rowspan="7">
@@ -395,10 +395,6 @@ vars:
 ```
 
 </td>
-<td>name<br/><b>(required)</b></td>
-<td>The content to be save if any</td>
-</tr>
-<tr>
 <td>secretStoreName<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
@@ -416,6 +412,10 @@ vars:
 </tr>
 <tr>
 <td>deletionPolicy<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
+</tr>
+<tr>
+<td>name<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
 <tr>
@@ -476,12 +476,47 @@ vars:
 ```
 
 </td>
+<td>filename<br/><b>(required)</b></td>
+<td>The filename to save the content into</td>
+</tr>
+<tr>
 <td>key_value_pairs<br/><b>(required)</b></td>
 <td>The key value pairs for tfvars file</td>
 </tr>
 <tr>
-<td>filename<br/><b>(required)</b></td>
-<td>The filename to save the content into</td>
+<td rowspan="1">
+<b>gattai_actions/upstash/get_upstash_redis_database_endpoint.yaml</b>
+
+```yaml
+action: <repo_id>/gattai_actions/upstash/get_upstash_redis_database_endpoint
+vars:
+  identifier: '"string"'
+
+```
+
+</td>
+<td>identifier<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
+</tr>
+<tr>
+<td rowspan="2">
+<b>gattai_actions/upstash/query/upstash_redis_database.yaml</b>
+
+```yaml
+action: <repo_id>/gattai_actions/upstash/query/upstash_redis_database
+vars:
+  identifier: '"string"'
+  query: '"string"'
+
+```
+
+</td>
+<td>identifier<br/><b>(required)</b></td>
+<td>The upstash redis identifier</td>
+</tr>
+<tr>
+<td>query<br/><b>(required)</b></td>
+<td>The upstash redis parameter to be queried (top-level)</td>
 </tr>
 <tr>
 <td rowspan="2">
