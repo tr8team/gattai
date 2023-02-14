@@ -23,6 +23,18 @@ repos:
 
 targets:
   dev:
+    kubeconfig_secrets:
+      action: local-src/aws/list_all_secret_by_property
+      vars:
+        profile: dev
+        region: ap-southeast-1
+        filter: kubeconfig_secret
+        property: Name
+    kubeconfig_files:
+      action: local-src/write_multi_secrets
+      vars:
+        folder: ~/.kube/configs
+        secret_names: "{{ fetch .Targets.dev.kubeconfig_secrets }}"
     STAGING_MYSQL_URL:
       action: local-src/aws/query_rds_cluster
       vars:
