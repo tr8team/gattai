@@ -26,7 +26,6 @@ targets:
     kubeconfig_secrets:
       action: local-src/aws/list_all_secret_by_property
       vars:
-        profile: dev
         region: ap-southeast-1
         filter: kubeconfig_secret
         property: Name
