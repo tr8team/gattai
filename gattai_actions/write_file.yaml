@@ -15,7 +15,7 @@ spec:
         {{- with .Vars }}
         args:
           - >-
-            '{{ format .content }}' > '{{ .filename }}'
+            "{{ format .content }}" > "{{ .filename }}"
         {{- end }}
       - command: echo
         {{- with .Vars }}
