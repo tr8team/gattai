@@ -6,8 +6,8 @@ import (
 	"log"
 	"path"
 	"github.com/spf13/cobra"
-	"github.com/tr8team/gattai/src/gattai_core"
-	"github.com/tr8team/gattai/src/gattai_core/action"
+	"github.com/tr8team/gattai/src/gattai_engine"
+	"github.com/tr8team/gattai/src/gattai_engine/action"
 )
 
 func RunCmdAction(actSpec action.ActionSpec, actArgs action.ActionArgs, actName string) (string, error){

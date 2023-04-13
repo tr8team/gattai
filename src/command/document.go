@@ -9,8 +9,8 @@ import (
 	"text/template"
 	"gopkg.in/yaml.v2"
 	"github.com/spf13/cobra"
-	"github.com/tr8team/gattai/src/gattai_core/common"
-	"github.com/tr8team/gattai/src/gattai_core/action"
+	"github.com/tr8team/gattai/src/gattai_engine/common"
+	"github.com/tr8team/gattai/src/gattai_engine/action"
 )
 
 type ReadMeDoc struct {
