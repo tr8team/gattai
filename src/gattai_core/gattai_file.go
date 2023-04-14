@@ -5,9 +5,31 @@ import (
 	"fmt"
 	"errors"
 	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/gattai_engine/action"
-	"github.com/tr8team/gattai/src/gattai_engine/common"
+	"github.com/tr8team/gattai/src/gattai_core/action"
+	"github.com/tr8team/gattai/src/gattai_core/common"
 )
+
+const (
+	Version1 string = "v1"
+)
+
+const (
+	AllNamespaces string = "all"
+	AllTargets string = "all"
+)
+
+const (
+	GattaiFileDefault string = "Gattaifile.yaml"
+	GattaiTmpFolder string = "gattaitmp"
+)
+
+type GattaiFile struct {
+    Version string `yaml:"version"`
+    TempFolder string `yaml:"temp_folder"`
+	EnforceTargets map[string][]string `yaml:"enforce_targets"`
+	Repos map[string]common.Repo `yaml:"repos"`
+	Targets map[string]map[string]common.Target `yaml:"targets"`
+}
 
 func NewGattaiFileFromBuffer(buffer []byte) (*GattaiFile,error) {
 	gattaiFile := new(GattaiFile)

@@ -15,8 +15,8 @@ import (
 	//"sync/atomic"
 	"text/template"
 	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/gattai_engine/action"
-	"github.com/tr8team/gattai/src/gattai_engine/common"
+	"github.com/tr8team/gattai/src/gattai_core/action"
+	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
 type LookUp struct {

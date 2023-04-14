@@ -14,7 +14,7 @@ import (
 	//"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
-	//"github.com/tr8team/gattai/src/gattai_engine/common"
+	//"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
 const (

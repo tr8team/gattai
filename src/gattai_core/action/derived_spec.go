@@ -3,7 +3,7 @@ package action
 import (
 	"fmt"
 	"path"
-	"github.com/tr8team/gattai/src/gattai_engine/common"
+	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
 type DerivedInterfaceSpec struct {

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"github.com/spf13/cobra"
-	"github.com/tr8team/gattai/src/gattai_engine"
-	"github.com/tr8team/gattai/src/gattai_engine/action"
+	"github.com/tr8team/gattai/src/gattai_core"
+	"github.com/tr8team/gattai/src/gattai_core/action"
 )
 
 func ValidateCmdAction(actSpec action.ActionSpec, actArgs action.ActionArgs, actName string) (string, error){
