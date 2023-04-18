@@ -7,7 +7,7 @@ import (
 	//"log"
 	"time"
 	"bytes"
-	"strconv"
+	//"strconv"
 	"strings"
 	"context"
 	"runtime"
@@ -15,20 +15,14 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 	//"github.com/tr8team/gattai/src/gattai_core/common"
+	"github.com/tr8team/gattai/src/gattai_core/cli"
 )
 
 const (
 	NixShell string = "nix_shell"
 )
 
-const (
-	CmpEqual string = "equal"
-	CmpNotEqual		= "not_equal"
-	CmpContain		= "contain"
-	CmpNotContain	= "not_contain"
-	CmpIntLessThan  = "int_less_than"
-	CmpIntMoreThan  = "int_more_than"
-)
+
 
 type CommandLineInteraceSpec struct {
 	// RunTimeEnv map[string](
@@ -53,6 +47,13 @@ type TestCmd struct {
 type CmdBlock struct {
 	Command string `yaml:"command"`
 	Args [] string `yaml:"args"`
+}
+
+func (blk CmdBlock) GetArray()[]string{
+	return append(
+		[]string{blk.Command},
+		blk.Args...
+	)
 }
 
 func ExecCommand(src string) (string, error) {
@@ -130,63 +131,66 @@ func ExecCmdBlks(cmds []CmdBlock) (string, error) {
 	return result, nil
 }
 
-func ExpectedTest(expected string, conditon string, expected_value string) (bool,error) {
-	result := false
-	switch conditon {
-	case CmpEqual:
-		result = (strings.TrimSpace(expected) == strings.TrimSpace(expected_value))
-	case CmpNotEqual:
-		result = (strings.TrimSpace(expected) != strings.TrimSpace(expected_value))
-	case CmpContain:
-		result = strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(expected_value))
-	case CmpNotContain:
-		result =!strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(expected_value))
-	case CmpIntLessThan:
-		exp_int, err := strconv.Atoi(expected)
-		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected, err)
-		}
-		exp_val, err := strconv.Atoi(expected_value)
-		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected_value, err)
-		}
-		result = (exp_int < exp_val)
-	case CmpIntMoreThan:
-		exp_int, err := strconv.Atoi(expected)
-		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected, err)
-		}
-		exp_val, err := strconv.Atoi(expected_value)
-		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected_value, err)
-		}
-		result = (exp_int > exp_val)
-	default:
-		return result, fmt.Errorf("ExpectedTest condition is not supported error: %s",conditon)
-	}
-	return result, nil
+func (cliSpec CommandLineInteraceSpec) GenerateTestAction(action_name string, action_args ActionArgs) (*cli.CLIAction,error)  {
+	return &cli.CLIAction{
+		Expected: cli.Comparison {
+			Condition: cliSpec.Test.Expected.Condition,
+			Value: cliSpec.Test.Expected.Value,
+		},
+		Exec: func(arr []CmdBlock) []cli.CLICommand {
+			result := make([]cli.CLICommand, len(arr))
+			for i, blk := range arr {
+				result[i] = cli.CLICommand {
+					Shell: "",
+					EnvVars: make(map[string]string),
+					CmdArray: blk.GetArray(),
+				}
+			}
+			return result
+		}(cliSpec.Test.Cmds),
+	}, nil
 }
 
-func (cliSpec CommandLineInteraceSpec) TestAction(action_name string, action_args ActionArgs) (string,error)  {
-	result := fmt.Sprintf("%s No Test Found!\n",action_name)
-	if len(cliSpec.Test.Cmds) > 0 {
-		expected,err := ExecCmdBlks(cliSpec.Test.Cmds)
-		if err != nil {
-			return result, fmt.Errorf("%s ExecCmdBlks error: %v",action_name,err)
-		}
-		passed, err := ExpectedTest(expected,cliSpec.Test.Expected.Condition,cliSpec.Test.Expected.Value)
-		if err != nil {
-			return result, fmt.Errorf("%s ExpectedTest error: %v",action_name,err)
-		}
-		if passed {
-			result = fmt.Sprintf("%s Test Passed!\n",action_name)
-		} else {
-			return result, fmt.Errorf("%s Test Failed! (Expecting: %s, Result: %s)\n",action_name,cliSpec.Test.Expected.Value,expected)
-		}
-	}
-	return result, nil
+func (cliSpec CommandLineInteraceSpec) GenerateExecAction(action_name string, action_args ActionArgs) (*cli.CLIAction,error)  {
+	return &cli.CLIAction{
+		Expected: cli.Comparison {
+			Condition: "",
+			Value: "",
+		},
+		Exec: func(arr []CmdBlock) []cli.CLICommand {
+			result := make([]cli.CLICommand, len(arr))
+			for i, blk := range arr {
+				result[i] = cli.CLICommand {
+					Shell: "",
+					EnvVars: make(map[string]string),
+					CmdArray: blk.GetArray(),
+				}
+			}
+			return result
+		}(cliSpec.Exec.Cmds),
+	}, nil
 }
 
-func (cliSpec CommandLineInteraceSpec) ExecAction(action_name string, action_args ActionArgs) (string,error)  {
-	return ExecCmdBlks(cliSpec.Exec.Cmds)
-}
+// func (cliSpec CommandLineInteraceSpec) TestAction(action_name string, action_args ActionArgs) (string,error)  {
+// 	result := fmt.Sprintf("%s No Test Found!\n",action_name)
+// 	if len(cliSpec.Test.Cmds) > 0 {
+// 		expected,err := ExecCmdBlks(cliSpec.Test.Cmds)
+// 		if err != nil {
+// 			return result, fmt.Errorf("%s ExecCmdBlks error: %v",action_name,err)
+// 		}
+// 		passed, err := ExpectedTest(expected,cliSpec.Test.Expected.Condition,cliSpec.Test.Expected.Value)
+// 		if err != nil {
+// 			return result, fmt.Errorf("%s ExpectedTest error: %v",action_name,err)
+// 		}
+// 		if passed {
+// 			result = fmt.Sprintf("%s Test Passed!\n",action_name)
+// 		} else {
+// 			return result, fmt.Errorf("%s Test Failed! (Expecting: %s, Result: %s)\n",action_name,cliSpec.Test.Expected.Value,expected)
+// 		}
+// 	}
+// 	return result, nil
+// }
+
+// func (cliSpec CommandLineInteraceSpec) ExecAction(action_name string, action_args ActionArgs) (string,error)  {
+// 	return ExecCmdBlks(cliSpec.Exec.Cmds)
+// }

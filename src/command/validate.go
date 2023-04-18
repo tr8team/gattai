@@ -10,12 +10,20 @@ import (
 )
 
 func ValidateCmdAction(actSpec action.ActionSpec, actArgs action.ActionArgs, actName string) (string, error){
-	result, err := actSpec.TestAction(actName,actArgs)
+	cliTestAct, err := actSpec.GenerateTestAction(actName,actArgs)
+	if err != nil {
+		return "", fmt.Errorf("ValidateCmdAction error: %v",err)
+	}
+	result, err := cliTestAct.TestAction(actName)
 	if err != nil {
 		return "", fmt.Errorf("ValidateCmdAction error: %v",err)
 	}
 	log.Println(result)
-	return actSpec.ExecAction(actName,actArgs)
+	cliExecAct, err := actSpec.GenerateExecAction(actName,actArgs)
+	if err != nil {
+		return "", fmt.Errorf("ValidateCmdAction error: %v",err)
+	}
+	return cliExecAct.ExecAction(actName)
 }
 
 func NewValidateCommand() *cobra.Command {

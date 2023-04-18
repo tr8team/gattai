@@ -11,7 +11,11 @@ import (
 )
 
 func RunCmdAction(actSpec action.ActionSpec, actArgs action.ActionArgs, actName string) (string, error){
-	return actSpec.ExecAction(actName,actArgs)
+	cliExecAct, err := actSpec.GenerateExecAction(actName,actArgs)
+	if err != nil {
+		return "", fmt.Errorf("RunCmdAction error: %v",err)
+	}
+	return cliExecAct.ExecAction(actName)
 }
 
 func NewRunCommand() *cobra.Command {
