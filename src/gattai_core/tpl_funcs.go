@@ -15,7 +15,7 @@ import (
 	//"sync/atomic"
 	"text/template"
 	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/gattai_core/yaml_action"
+	"github.com/tr8team/gattai/src/yaml_format"
 	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
@@ -38,7 +38,7 @@ func (lu *LookUp) Get(key string) (string,bool) {
     return "", false
 }
 
-func GoroutineFetch(yamlTarget string, gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn LookUp,cmdFunc yaml_action.CommandFunc, output chan string) {
+func GoroutineFetch(yamlTarget string, gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn LookUp,cmdFunc yaml_format.CommandFunc, output chan string) {
 	result, ok := lookUpReturn.Get(yamlTarget)
 	if !ok {
 		// if not, parse target to see if target have dependency
@@ -66,15 +66,15 @@ func GoroutineFetch(yamlTarget string, gattai_file GattaiFile, temp_dir string, 
 			log.Fatalln("TplFetch lookUpRepoPath error")
 		}
 		tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
-		act_args := yaml_action.ActionArgs{
+		act_args := yaml_format.ActionArgs{
 			RepoPath: repo_path,
 			TempDir: temp_dir,
-			SpecMap: map[string]yaml_action.ActionFunc{
-				yaml_action.ActionVerKey(yaml_action.CLISpec, yaml_action.Version1): yaml_action.NewSpec[yaml_action.CommandLineInteraceSpec],
-				yaml_action.ActionVerKey(yaml_action.DerivedSpec, yaml_action.Version1): yaml_action.NewSpec[yaml_action.DerivedInterfaceSpec],
+			SpecMap: map[string]yaml_format.ActionFunc{
+				yaml_format.ActionVerKey(yaml_format.CLISpec, yaml_format.Version1): yaml_format.NewSpec[yaml_format.CommandLineInteraceSpec],
+				yaml_format.ActionVerKey(yaml_format.DerivedSpec, yaml_format.Version1): yaml_format.NewSpec[yaml_format.DerivedInterfaceSpec],
 			},
 		}
-		out_spec, err := yaml_action.RunAction(updated_target,tmpl_filepath,act_args)
+		out_spec, err := yaml_format.RunAction(updated_target,tmpl_filepath,act_args)
 		if err != nil {
 			log.Fatalf("TplFetch RunAction error: %v", err)
 		}
@@ -88,7 +88,7 @@ func GoroutineFetch(yamlTarget string, gattai_file GattaiFile, temp_dir string, 
 	output <- result
 }
 
-func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn LookUp,cmdFunc yaml_action.CommandFunc) func(common.Target) string {
+func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn LookUp,cmdFunc yaml_format.CommandFunc) func(common.Target) string {
 	return func(target common.Target) string {
 		// get target generated key
 		yamlTarget, err := yaml.Marshal(target)

@@ -1,4 +1,4 @@
-package yaml_action
+package yaml_format
 
 import (
 	"path"

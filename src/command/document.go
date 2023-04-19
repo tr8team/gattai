@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"github.com/spf13/cobra"
 	"github.com/tr8team/gattai/src/gattai_core/common"
-	"github.com/tr8team/gattai/src/gattai_core/yaml_action"
+	"github.com/tr8team/gattai/src/yaml_format"
 )
 
 type ReadMeDoc struct {
@@ -18,7 +18,7 @@ type ReadMeDoc struct {
 }
 
 type ReadMeEntry struct {
-	Fields []yaml_action.ParamField `yaml:"Fields"`
+	Fields []yaml_format.ParamField `yaml:"Fields"`
 	YamlTarget string `yaml:"YamlTarget"`
 }
 
@@ -90,8 +90,8 @@ func ReadSingleActionFile(root_path string, filename string) ReadMeEntry {
 	file_path := path.Join(root_path,filename)
 	tmpl_filename := path.Base(file_path)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
-		"temp_dir": yaml_action.TplTempDir(""),
-		"format": yaml_action.TplFormat(),
+		"temp_dir": yaml_format.TplTempDir(""),
+		"format": yaml_format.TplFormat(),
 	}).ParseFiles(file_path)
 	if err != nil {
 		log.Fatalf("Error template error: %v",err)
@@ -101,7 +101,7 @@ func ReadSingleActionFile(root_path string, filename string) ReadMeEntry {
 	if err != nil {
 		log.Fatalf("Error Execute error: %v",err)
 	}
-	var actionFile yaml_action.ActionFile
+	var actionFile yaml_format.ActionFile
 
 	err = yaml.Unmarshal(buf.Bytes(), &actionFile)
 	if err != nil {
