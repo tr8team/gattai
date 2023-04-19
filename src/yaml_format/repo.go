@@ -1,4 +1,4 @@
-package common
+package yaml_format
 
 import (
 	"os"

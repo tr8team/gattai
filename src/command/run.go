@@ -6,7 +6,6 @@ import (
 	"log"
 	"path"
 	"github.com/spf13/cobra"
-	"github.com/tr8team/gattai/src/gattai_core"
 	"github.com/tr8team/gattai/src/yaml_format"
 )
 
@@ -30,7 +29,7 @@ func NewRunCommand() *cobra.Command {
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 
-			gattaifile_path := core.GattaiFileDefault
+			gattaifile_path := yaml_format.GattaiFileDefault
 
 			if len(args) >= 3 {
 				output, err := GetGattaiFilePath(args[2],gattaifile_path)
@@ -46,13 +45,13 @@ func NewRunCommand() *cobra.Command {
 			}
 
 			if fileInfo.IsDir() {
-				gattaifile_path = path.Join(gattaifile_path,core.GattaiFileDefault)
+				gattaifile_path = path.Join(gattaifile_path,yaml_format.GattaiFileDefault)
 			}
 
 			namespace_id := args[0]
 			target_id := args[1]
 
-			gattaiFile,err := core.NewGattaiFile(gattaifile_path)
+			gattaiFile,err := yaml_format.NewGattaiFile(gattaifile_path)
 			if err != nil {
 				log.Fatalf("Error parsing Gattai file: %v", err)
 			}
@@ -69,7 +68,7 @@ func NewRunCommand() *cobra.Command {
 				}
 			}
 
-			tempDir, err := gattaiFile.CreateTempDir(core.GattaiTmpFolder)
+			tempDir, err := gattaiFile.CreateTempDir(yaml_format.GattaiTmpFolder)
 			if err != nil {
 				log.Fatalf("Error creating temporary folder: %v", err)
 			}

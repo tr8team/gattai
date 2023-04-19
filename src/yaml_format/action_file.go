@@ -7,11 +7,10 @@ import (
 	"bytes"
 	"text/template"
 	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
 const (
-	Version1 string = "v1"
+	ActionVersion1 string = "v1"
 )
 
 const (
@@ -130,7 +129,7 @@ func ActionVerKey(action string, ver string) string {
 
 func (actionFile ActionFile) CheckVersion() error {
 	switch actionFile.Version {
-	case Version1:
+	case ActionVersion1:
 	default:
 		return fmt.Errorf("ActionFile:CheckVersion inalid version error: %s",actionFile.Version)
 	}
@@ -261,7 +260,7 @@ func rec_target_from_single_param(val *Param,out *interface{}) error {
 	return nil
 }
 
-func (actionFile ActionFile) CheckParams(target common.Target) error {
+func (actionFile ActionFile) CheckParams(target Target) error {
 	switch var_item_type := target.Vars.(type) {
 	case map[interface{}]interface{}:
 		result, err := check_multi_params(var_item_type, actionFile.Params)
@@ -362,7 +361,7 @@ func check_multi_params(target_var map[interface{}]interface{},params Params) (s
 	return result, nil
 }
 
-func RunAction(updated_target common.Target, tmpl_filepath string, action_args ActionArgs) (ActionSpecInterface,error) {
+func RunAction(updated_target Target, tmpl_filepath string, action_args ActionArgs) (ActionSpecInterface,error) {
 	tmpl_filename := path.Base(tmpl_filepath)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
 		"temp_dir": TplTempDir(action_args.TempDir),

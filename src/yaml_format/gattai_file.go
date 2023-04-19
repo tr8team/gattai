@@ -1,16 +1,14 @@
-package core
+package yaml_format
 
 import (
 	"os"
 	"fmt"
 	"errors"
 	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/yaml_format"
-	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
 const (
-	Version1 string = "v1"
+	GattaiVersion1 string = "v1"
 )
 
 const (
@@ -27,8 +25,8 @@ type GattaiFile struct {
     Version string `yaml:"version"`
     TempFolder string `yaml:"temp_folder"`
 	EnforceTargets map[string][]string `yaml:"enforce_targets"`
-	Repos map[string]common.Repo `yaml:"repos"`
-	Targets map[string]map[string]common.Target `yaml:"targets"`
+	Repos map[string]Repo `yaml:"repos"`
+	Targets map[string]map[string]Target `yaml:"targets"`
 }
 
 func NewGattaiFileFromBuffer(buffer []byte) (*GattaiFile,error) {
@@ -50,7 +48,7 @@ func NewGattaiFile(gattaifile_path string) (*GattaiFile,error) {
 
 func (gattaiFile GattaiFile) CheckVersion() error {
 	switch gattaiFile.Version {
-	case Version1:
+	case GattaiVersion1:
 	default:
 		return fmt.Errorf("GattaiFile:CheckVersion invalid version error: %s",gattaiFile.Version)
 	}
@@ -90,7 +88,7 @@ func (gattaiFile GattaiFile) BuildRepoMap(tempDir string) (map[string]string, er
 	result := make(map[string]string)
 
 	for key, val := range gattaiFile.Repos {
-		output, err  := common.GetRepoPath(tempDir,key,val,"")
+		output, err  := GetRepoPath(tempDir,key,val,"")
 		if err != nil {
 			return result, fmt.Errorf("GattaiFile:BuildRepoMap error %v",err)
 		}
@@ -100,7 +98,7 @@ func (gattaiFile GattaiFile) BuildRepoMap(tempDir string) (map[string]string, er
 	return result, nil
 }
 
-func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,cmdFunc yaml_format.CommandFunc) (string,error) {
+func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,cmdFunc CommandFunc) (string,error) {
 	var result string
 
 	lookUpRepoPath,err := gattaiFile.BuildRepoMap(tempDir)

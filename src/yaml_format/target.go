@@ -1,4 +1,4 @@
-package common
+package yaml_format
 
 type Target struct {
 	Action string `yaml:"action"`

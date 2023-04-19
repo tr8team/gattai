@@ -3,20 +3,19 @@ package yaml_format
 import (
 	"fmt"
 	"path"
-	"github.com/tr8team/gattai/src/gattai_core/common"
 	"github.com/tr8team/gattai/src/gattai_core/cli"
 )
 
 type DerivedInterfaceSpec struct {
-	Repo common.Repo `yaml:"repo"`
-	InheritExec common.Target `yaml:"inherit_exec"`
+	Repo Repo `yaml:"repo"`
+	InheritExec Target `yaml:"inherit_exec"`
 	OverrideTest TestCmd `yaml:"override_test"`
 }
 
 func (diSpec * DerivedInterfaceSpec) Derived(action_name string,action_args ActionArgs) (ActionSpecInterface,error) {
 	repopath := action_args.RepoPath
 	if len(diSpec.Repo.Src) > 0 {
-		output, err := common.GetRepoPath(action_args.TempDir,diSpec.Repo.Src,diSpec.Repo,action_args.RepoPath)
+		output, err := GetRepoPath(action_args.TempDir,diSpec.Repo.Src,diSpec.Repo,action_args.RepoPath)
 		if err != nil {
 			return nil, fmt.Errorf("%s error: %v",action_name,err)
 		}

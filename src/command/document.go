@@ -9,7 +9,6 @@ import (
 	"text/template"
 	"gopkg.in/yaml.v2"
 	"github.com/spf13/cobra"
-	"github.com/tr8team/gattai/src/gattai_core/common"
 	"github.com/tr8team/gattai/src/yaml_format"
 )
 
@@ -97,7 +96,7 @@ func ReadSingleActionFile(root_path string, filename string) ReadMeEntry {
 		log.Fatalf("Error template error: %v",err)
 	}
 	var buf bytes.Buffer
-	err = tmpl.Execute(&buf, common.Target{})
+	err = tmpl.Execute(&buf, yaml_format.Target{})
 	if err != nil {
 		log.Fatalf("Error Execute error: %v",err)
 	}
