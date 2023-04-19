@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"errors"
 	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/gattai_core/action"
+	"github.com/tr8team/gattai/src/gattai_core/yaml_action"
 	"github.com/tr8team/gattai/src/gattai_core/common"
 )
 
@@ -100,7 +100,7 @@ func (gattaiFile GattaiFile) BuildRepoMap(tempDir string) (map[string]string, er
 	return result, nil
 }
 
-func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,cmdFunc action.CommandFunc) (string,error) {
+func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,cmdFunc yaml_action.CommandFunc) (string,error) {
 	var result string
 
 	lookUpRepoPath,err := gattaiFile.BuildRepoMap(tempDir)

@@ -182,7 +182,7 @@ targets:
 - `action` Name of the action file in the following format `<repo>/<path_to_action_file_wo_ext>`
   - `repo`: Using the example above, repo is `github-src`
   - `path_to_action_file_wo_ext`: Using the example above, the action file without extension is `op_cli_item_get`
-- `vars` These are the argument needed by the action file to perform its action. The variables required can be found in the `params` section in the action file.
+- `vars` These are the argument needed by the action file to perform its yaml. The variables required can be found in the `params` section in the action file.
 
 ## Action Files
 

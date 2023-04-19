@@ -1,4 +1,4 @@
-package action
+package yaml_action
 
 import (
 	"fmt"
@@ -53,9 +53,9 @@ type Params struct {
 	Optional map[string]*Param `yaml:"optional"`
 }
 
-type CommandFunc func(ActionSpec,ActionArgs,string) (string,error)
+type CommandFunc func(ActionSpecInterface,ActionArgs,string) (string,error)
 
-type ActionFunc func(ActionFile)(ActionSpec,error)
+type ActionFunc func(ActionFile)(ActionSpecInterface,error)
 
 type ActionArgs struct {
 	RepoPath string
@@ -106,7 +106,7 @@ func ValPlainType(item interface{}) (string,error) {
 	return result, nil
 }
 
-func NewSpecFromBuffer[T ActionSpec](buffer []byte) (ActionSpec,error) {
+func NewSpecFromBuffer[T ActionSpecInterface](buffer []byte) (ActionSpecInterface,error) {
 	var newSpec T
 	err := yaml.Unmarshal(buffer, &newSpec)
 	if err != nil {
@@ -115,7 +115,7 @@ func NewSpecFromBuffer[T ActionSpec](buffer []byte) (ActionSpec,error) {
 	return newSpec, nil
 }
 
-func  NewSpec[T ActionSpec](actionFile ActionFile) (ActionSpec,error) {
+func  NewSpec[T ActionSpecInterface](actionFile ActionFile) (ActionSpecInterface,error) {
 	yamlSpec, err := yaml.Marshal(actionFile.Spec)
 	if err != nil {
 		var newSpec T
@@ -362,7 +362,7 @@ func check_multi_params(target_var map[interface{}]interface{},params Params) (s
 	return result, nil
 }
 
-func RunAction(updated_target common.Target, tmpl_filepath string, action_args ActionArgs) (ActionSpec,error) {
+func RunAction(updated_target common.Target, tmpl_filepath string, action_args ActionArgs) (ActionSpecInterface,error) {
 	tmpl_filename := path.Base(tmpl_filepath)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
 		"temp_dir": TplTempDir(action_args.TempDir),

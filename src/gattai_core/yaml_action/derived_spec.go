@@ -1,4 +1,4 @@
-package action
+package yaml_action
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ type DerivedInterfaceSpec struct {
 	OverrideTest TestCmd `yaml:"override_test"`
 }
 
-func (diSpec * DerivedInterfaceSpec) Derived(action_name string,action_args ActionArgs) (ActionSpec,error) {
+func (diSpec * DerivedInterfaceSpec) Derived(action_name string,action_args ActionArgs) (ActionSpecInterface,error) {
 	repopath := action_args.RepoPath
 	if len(diSpec.Repo.Src) > 0 {
 		output, err := common.GetRepoPath(action_args.TempDir,diSpec.Repo.Src,diSpec.Repo,action_args.RepoPath)

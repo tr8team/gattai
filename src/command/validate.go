@@ -6,10 +6,10 @@ import (
 	"log"
 	"github.com/spf13/cobra"
 	"github.com/tr8team/gattai/src/gattai_core"
-	"github.com/tr8team/gattai/src/gattai_core/action"
+	"github.com/tr8team/gattai/src/gattai_core/yaml_action"
 )
 
-func ValidateCmdAction(actSpec action.ActionSpec, actArgs action.ActionArgs, actName string) (string, error){
+func ValidateCmdAction(actSpec yaml_action.ActionSpecInterface, actArgs yaml_action.ActionArgs, actName string) (string, error){
 	cliTestAct, err := actSpec.GenerateTestAction(actName,actArgs)
 	if err != nil {
 		return "", fmt.Errorf("ValidateCmdAction error: %v",err)
