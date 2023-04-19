@@ -1,4 +1,4 @@
-package cli
+package core_cli
 
 import (
 	"os"

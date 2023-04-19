@@ -1,4 +1,4 @@
-package action
+package core_action
 
 type ActionInterface interface {
 	TestAction(string) (string,error)

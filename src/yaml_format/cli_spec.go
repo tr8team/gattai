@@ -15,7 +15,8 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 	//"github.com/tr8team/gattai/src/gattai_core/common"
-	"github.com/tr8team/gattai/src/gattai_core/cli"
+	"github.com/tr8team/gattai/src/gattai_core/core_action"
+	"github.com/tr8team/gattai/src/gattai_core/core_cli"
 )
 
 const (
@@ -131,16 +132,16 @@ func ExecCmdBlks(cmds []CmdBlock) (string, error) {
 	return result, nil
 }
 
-func (cliSpec CommandLineInteraceSpec) GenerateTestAction(action_name string, action_args ActionArgs) (*cli.CLIAction,error)  {
-	return &cli.CLIAction{
-		Expected: cli.Comparison {
+func (cliSpec CommandLineInteraceSpec) GenerateTestAction(action_name string, action_args ActionArgs) (core_action.ActionInterface,error)  {
+	return &core_cli.CLIAction{
+		Expected: core_cli.Comparison {
 			Condition: cliSpec.Test.Expected.Condition,
 			Value: cliSpec.Test.Expected.Value,
 		},
-		Exec: func(arr []CmdBlock) []cli.CLICommand {
-			result := make([]cli.CLICommand, len(arr))
+		Exec: func(arr []CmdBlock) []core_cli.CLICommand {
+			result := make([]core_cli.CLICommand, len(arr))
 			for i, blk := range arr {
-				result[i] = cli.CLICommand {
+				result[i] = core_cli.CLICommand {
 					Shell: "",
 					EnvVars: make(map[string]string),
 					CmdArray: blk.GetArray(),
@@ -151,16 +152,16 @@ func (cliSpec CommandLineInteraceSpec) GenerateTestAction(action_name string, ac
 	}, nil
 }
 
-func (cliSpec CommandLineInteraceSpec) GenerateExecAction(action_name string, action_args ActionArgs) (*cli.CLIAction,error)  {
-	return &cli.CLIAction{
-		Expected: cli.Comparison {
+func (cliSpec CommandLineInteraceSpec) GenerateExecAction(action_name string, action_args ActionArgs) (core_action.ActionInterface,error)  {
+	return &core_cli.CLIAction{
+		Expected: core_cli.Comparison {
 			Condition: "",
 			Value: "",
 		},
-		Exec: func(arr []CmdBlock) []cli.CLICommand {
-			result := make([]cli.CLICommand, len(arr))
+		Exec: func(arr []CmdBlock) []core_cli.CLICommand {
+			result := make([]core_cli.CLICommand, len(arr))
 			for i, blk := range arr {
-				result[i] = cli.CLICommand {
+				result[i] = core_cli.CLICommand {
 					Shell: "",
 					EnvVars: make(map[string]string),
 					CmdArray: blk.GetArray(),
@@ -170,27 +171,3 @@ func (cliSpec CommandLineInteraceSpec) GenerateExecAction(action_name string, ac
 		}(cliSpec.Exec.Cmds),
 	}, nil
 }
-
-// func (cliSpec CommandLineInteraceSpec) TestAction(action_name string, action_args ActionArgs) (string,error)  {
-// 	result := fmt.Sprintf("%s No Test Found!\n",action_name)
-// 	if len(cliSpec.Test.Cmds) > 0 {
-// 		expected,err := ExecCmdBlks(cliSpec.Test.Cmds)
-// 		if err != nil {
-// 			return result, fmt.Errorf("%s ExecCmdBlks error: %v",action_name,err)
-// 		}
-// 		passed, err := ExpectedTest(expected,cliSpec.Test.Expected.Condition,cliSpec.Test.Expected.Value)
-// 		if err != nil {
-// 			return result, fmt.Errorf("%s ExpectedTest error: %v",action_name,err)
-// 		}
-// 		if passed {
-// 			result = fmt.Sprintf("%s Test Passed!\n",action_name)
-// 		} else {
-// 			return result, fmt.Errorf("%s Test Failed! (Expecting: %s, Result: %s)\n",action_name,cliSpec.Test.Expected.Value,expected)
-// 		}
-// 	}
-// 	return result, nil
-// }
-
-// func (cliSpec CommandLineInteraceSpec) ExecAction(action_name string, action_args ActionArgs) (string,error)  {
-// 	return ExecCmdBlks(cliSpec.Exec.Cmds)
-// }
