@@ -78,11 +78,11 @@ func GoroutineFetch(yamlTarget string, gattai_file GattaiFile, temp_dir string, 
 		if err != nil {
 			log.Fatalf("TplFetch RunAction error: %v", err)
 		}
-		output, err := cmdFunc(out_spec,act_args,updated_target.Action)
+		out_result, err := cmdFunc(out_spec,act_args,updated_target.Action)
 		if err != nil {
 			log.Fatalf("TplFetch cmdFunc error: %v", err)
 		}
-		result = strings.TrimSpace(output)
+		result = strings.TrimSpace(out_result)
 		lookUpReturn.Set(string(yamlTarget), result)
 	}
 	output <- result
