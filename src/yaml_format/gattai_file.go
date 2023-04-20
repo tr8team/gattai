@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"errors"
 	"gopkg.in/yaml.v2"
+	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
 const (
@@ -105,7 +106,7 @@ func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string
 	if err != nil {
 		return result, fmt.Errorf("GattaiFile:LookupTargets error: %v",err)
 	}
-	lookUpReturn := MakeLookUp()
+	lookUpReturn := core_action.MakeActionLookUp()
 
 	switch namespace_id {
 	case AllNamespaces:

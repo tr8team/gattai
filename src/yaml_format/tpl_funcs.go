@@ -3,33 +3,14 @@ package yaml_format
 import (
 	"log"
 	"path"
-	"sync"
 	"bytes"
 	"strings"
 	"text/template"
 	"gopkg.in/yaml.v2"
+	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
-type LookUp struct {
-	m sync.Map
-}
-
-func MakeLookUp() LookUp {
-	return LookUp {}
-}
-
-func (lu *LookUp) Set(key string, val string) {
-    lu.m.Store(key, val)
-}
-
-func (lu *LookUp) Get(key string) (string,bool) {
-	if val, ok := lu.m.Load(key); ok {
-        return val.(string), true
-    }
-    return "", false
-}
-
-func GoroutineFetch(yamlTarget string, gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn LookUp,cmdFunc CommandFunc, output chan string) {
+func GoroutineFetch(yamlTarget string, gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn core_action.ActionLookUp,cmdFunc CommandFunc, output chan string) {
 	result, ok := lookUpReturn.Get(yamlTarget)
 	if !ok {
 		// if not, parse target to see if target have dependency
@@ -79,7 +60,7 @@ func GoroutineFetch(yamlTarget string, gattai_file GattaiFile, temp_dir string, 
 	output <- result
 }
 
-func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn LookUp,cmdFunc CommandFunc) func(Target) string {
+func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn core_action.ActionLookUp,cmdFunc CommandFunc) func(Target) string {
 	return func(target Target) string {
 		// get target generated key
 		yamlTarget, err := yaml.Marshal(target)
