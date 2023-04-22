@@ -10,55 +10,59 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
-func YamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn core_action.ActionLookUp,cmdFunc CommandFunc) func(string) (string,error) {
-	return func(yamlTargetBody string) (string,error) {
-		// if not, parse target to see if target have dependency
-		tmpl, err := template.New("").Funcs(template.FuncMap{
-			"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,lookUpReturn,cmdFunc),
-		}).Parse(yamlTargetBody)
-		if err != nil {
-			log.Fatalf("GoroutineFetch template Parse error: %v", err)
+type TargetFunc func()(string,error)
+
+func YamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn core_action.ActionLookUp,cmdFunc CommandFunc) func(string) TargetFunc{
+	return func(yamlTargetBody string) TargetFunc {
+		return func() (string,error) {
+			// if not, parse target to see if target have dependency
+			tmpl, err := template.New("").Funcs(template.FuncMap{
+				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,lookUpReturn,cmdFunc),
+			}).Parse(yamlTargetBody)
+			if err != nil {
+				log.Fatalf("YamlTarget template Parse error: %v", err)
+			}
+			var buf bytes.Buffer
+			err = tmpl.Execute(&buf, gattai_file);
+			if err != nil {
+				log.Fatalf("YamlTarget Execute error: %v", err)
+			}
+			// execute return template which hope is the leaf template
+			var updated_target Target
+			err = yaml.Unmarshal(buf.Bytes(), &updated_target)
+			if err != nil {
+				log.Fatalf("YamlTarget Unmarshal error: %s error: %v", buf.String(), err)
+			}
+			// unmarshal the update target to create the execution path
+			tokens := strings.Split(updated_target.Action, "/")
+			repo_path, ok := lookUpRepoPath[tokens[0]]
+			if !ok {
+				log.Fatalln("YamlTarget lookUpRepoPath error")
+			}
+			tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
+			act_args := ActionArgs{
+				RepoPath: repo_path,
+				TempDir: temp_dir,
+				SpecMap: map[string]ActionFunc{
+					ActionVerKey(CLISpec, ActionVersion1): NewSpec[CommandLineInteraceSpec],
+					ActionVerKey(DerivedSpec, ActionVersion1): NewSpec[DerivedInterfaceSpec],
+				},
+			}
+			out_spec, err := RunAction(updated_target,tmpl_filepath,act_args)
+			if err != nil {
+				log.Fatalf("TplFetch RunAction error: %v", err)
+			}
+			return cmdFunc(out_spec,act_args,updated_target.Action)
 		}
-		var buf bytes.Buffer
-		err = tmpl.Execute(&buf, gattai_file);
-		if err != nil {
-			log.Fatalf("GoroutineFetch Execute error: %v", err)
-		}
-		// execute return template which hope is the leaf template
-		var updated_target Target
-		err = yaml.Unmarshal(buf.Bytes(), &updated_target)
-		if err != nil {
-			log.Fatalf("GoroutineFetch Unmarshal error: %s error: %v", buf.String(), err)
-		}
-		// unmarshal the update target to create the execution path
-		tokens := strings.Split(updated_target.Action, "/")
-		repo_path, ok := lookUpRepoPath[tokens[0]]
-		if !ok {
-			log.Fatalln("GoroutineFetch lookUpRepoPath error")
-		}
-		tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
-		act_args := ActionArgs{
-			RepoPath: repo_path,
-			TempDir: temp_dir,
-			SpecMap: map[string]ActionFunc{
-				ActionVerKey(CLISpec, ActionVersion1): NewSpec[CommandLineInteraceSpec],
-				ActionVerKey(DerivedSpec, ActionVersion1): NewSpec[DerivedInterfaceSpec],
-			},
-		}
-		out_spec, err := RunAction(updated_target,tmpl_filepath,act_args)
-		if err != nil {
-			log.Fatalf("TplFetch RunAction error: %v", err)
-		}
-		return cmdFunc(out_spec,act_args,updated_target.Action)
 	}
 }
 
-func GoroutineFetch(targetKey string, yamlTargetBody string, gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn core_action.ActionLookUp,cmdFunc CommandFunc, output chan string) {
+func GoroutineFetch(targetKey string, lookUpReturn core_action.ActionLookUp,tarFunc TargetFunc, output chan string) {
 	result, ok := lookUpReturn.Get(targetKey)
 	if !ok {
-		out_result, err := YamlTarget(gattai_file,temp_dir,lookUpRepoPath,lookUpReturn,cmdFunc)(yamlTargetBody)
+		out_result, err := tarFunc()
 		if err != nil {
-			log.Fatalf("GoroutineFetch YamlTarget error: %v", err)
+			log.Fatalf("GoroutineFetch tarFunc error: %v", err)
 		}
 		result = strings.TrimSpace(out_result)
 		lookUpReturn.Set(string(targetKey), result)
@@ -75,7 +79,7 @@ func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string
 		}
 		// check if result for target already exist
 		result := make(chan string)
-		go GoroutineFetch(string(yamlTarget), string(yamlTarget), gattai_file, temp_dir, lookUpRepoPath, lookUpReturn,cmdFunc, result)
+		go GoroutineFetch(string(yamlTarget),lookUpReturn,YamlTarget(gattai_file, temp_dir, lookUpRepoPath, lookUpReturn, cmdFunc)(string(yamlTarget)), result)
 		return <- result
 	}
 }
