@@ -7,17 +7,15 @@ import (
 	"strings"
 	"text/template"
 	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/gattai_core/core_action"
+	"github.com/tr8team/gattai/src/gattai_core/core_engine"
 )
 
-type FetchFunc func()(string,error)
-
-func YamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn core_action.ActionLookUp,cmdFn CommandFunc) func(string) FetchFunc{
-	return func(yamlTargetBody string) FetchFunc {
-		return func() (string,error) {
+func YamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string,cmdFn CommandFunc) func(string) core_engine.FetchFunc{
+	return func(yamlTargetBody string) core_engine.FetchFunc {
+		return func(engine *core_engine.Engine) (string,error) {
 			// if not, parse target to see if target have dependency
 			tmpl, err := template.New("").Funcs(template.FuncMap{
-				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,lookUpReturn,cmdFn),
+				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,engine,cmdFn),
 			}).Parse(yamlTargetBody)
 			if err != nil {
 				log.Fatalf("YamlTarget template Parse error: %v", err)
@@ -57,30 +55,14 @@ func YamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[stri
 	}
 }
 
-func GoroutineFetch(targetKey string, lookUpReturn core_action.ActionLookUp,fetchFn FetchFunc, output chan string) {
-	result, ok := lookUpReturn.Get(targetKey)
-	if !ok {
-		out_result, err := fetchFn()
-		if err != nil {
-			log.Fatalf("GoroutineFetch fetchFn error: %v", err)
-		}
-		result = strings.TrimSpace(out_result)
-		lookUpReturn.Set(string(targetKey), result)
-	}
-	output <- result
-}
-
-func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, lookUpReturn core_action.ActionLookUp,cmdFn CommandFunc) func(Target) string {
+func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, engine *core_engine.Engine,cmdFn CommandFunc) func(Target) string {
 	return func(target Target) string {
 		// get target generated key
 		yamlTarget, err := yaml.Marshal(target)
 		if err != nil {
 			log.Fatalf("TplFetch Marshal error: %v", err)
 		}
-		// check if result for target already exist
-		result := make(chan string)
-		go GoroutineFetch(string(yamlTarget),lookUpReturn,YamlTarget(gattai_file, temp_dir, lookUpRepoPath, lookUpReturn, cmdFn)(string(yamlTarget)), result)
-		return <- result
+		return engine.Fetch(string(yamlTarget),YamlTarget(gattai_file, temp_dir, lookUpRepoPath, cmdFn)(string(yamlTarget)))
 	}
 }
 

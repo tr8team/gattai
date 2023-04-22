@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"errors"
 	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/gattai_core/core_action"
+	"github.com/tr8team/gattai/src/gattai_core/core_engine"
 )
 
 const (
@@ -106,7 +106,7 @@ func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string
 	if err != nil {
 		return result, fmt.Errorf("GattaiFile:LookupTargets error: %v",err)
 	}
-	lookUpReturn := core_action.MakeActionLookUp()
+	engine := core_engine.MakeEngine()
 
 	switch namespace_id {
 	case AllNamespaces:
@@ -115,14 +115,14 @@ func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string
 			// all namespaces and all targets
 			for _, targets := range gattaiFile.Targets {
 				for _, target := range targets {
-					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn,cmdFn)(target)
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine,cmdFn)(target)
 				}
 			}
 		default:
 			// all namespaces and a single target
 			for _, targets := range gattaiFile.Targets {
 				if target, ok := targets[target_id]; ok {
-					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn,cmdFn)(target)
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine,cmdFn)(target)
 				}
 			}
 		}
@@ -132,12 +132,12 @@ func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string
 			case AllTargets:
 				// a single namespace and all targets
 				for _, target := range targets {
-					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn,cmdFn)(target)
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine,cmdFn)(target)
 				}
 			default:
 				// a single namespace and a single target
 				if target, ok := targets[target_id]; ok {
-					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,lookUpReturn,cmdFn)(target)
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine,cmdFn)(target)
 				}
 			}
 		}
