@@ -10,7 +10,7 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/core_engine"
 )
 
-func YamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string,cmdFn CommandFunc) func(string) core_engine.FetchFunc{
+func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string,cmdFn CommandFunc) func(string) core_engine.FetchFunc{
 	return func(yamlTargetBody string) core_engine.FetchFunc {
 		return func(engine *core_engine.Engine) (string,error) {
 			// if not, parse target to see if target have dependency
@@ -18,24 +18,24 @@ func YamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[stri
 				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,engine,cmdFn),
 			}).Parse(yamlTargetBody)
 			if err != nil {
-				log.Fatalf("YamlTarget template Parse error: %v", err)
+				log.Fatalf("FetchYamlTarget template Parse error: %v", err)
 			}
 			var buf bytes.Buffer
 			err = tmpl.Execute(&buf, gattai_file);
 			if err != nil {
-				log.Fatalf("YamlTarget Execute error: %v", err)
+				log.Fatalf("FetchYamlTarget Execute error: %v", err)
 			}
 			// execute return template which hope is the leaf template
 			var updated_target Target
 			err = yaml.Unmarshal(buf.Bytes(), &updated_target)
 			if err != nil {
-				log.Fatalf("YamlTarget Unmarshal error: %s error: %v", buf.String(), err)
+				log.Fatalf("FetchYamlTarget Unmarshal error: %s error: %v", buf.String(), err)
 			}
 			// unmarshal the update target to create the execution path
 			tokens := strings.Split(updated_target.Action, "/")
 			repo_path, ok := lookUpRepoPath[tokens[0]]
 			if !ok {
-				log.Fatalln("YamlTarget lookUpRepoPath error")
+				log.Fatalln("FetchYamlTarget lookUpRepoPath error")
 			}
 			tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
 			act_args := ActionArgs{
@@ -62,7 +62,7 @@ func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string
 		if err != nil {
 			log.Fatalf("TplFetch Marshal error: %v", err)
 		}
-		return engine.Fetch(string(yamlTarget),YamlTarget(gattai_file, temp_dir, lookUpRepoPath, cmdFn)(string(yamlTarget)))
+		return engine.Fetch(string(yamlTarget),FetchYamlTarget(gattai_file, temp_dir, lookUpRepoPath, cmdFn)(string(yamlTarget)))
 	}
 }
 
