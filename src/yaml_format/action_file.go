@@ -109,7 +109,7 @@ func NewSpecFromBuffer[T ActionSpecInterface](buffer []byte) (ActionSpecInterfac
 	var newSpec T
 	err := yaml.Unmarshal(buffer, &newSpec)
 	if err != nil {
-		return newSpec, fmt.Errorf("NewSpecFromBuffer Unmarshal error: %s error: %v",string(buffer),err)
+		return nil, fmt.Errorf("NewSpecFromBuffer Unmarshal error: %s error: %v",string(buffer),err)
 	}
 	return newSpec, nil
 }
@@ -117,8 +117,7 @@ func NewSpecFromBuffer[T ActionSpecInterface](buffer []byte) (ActionSpecInterfac
 func  NewSpec[T ActionSpecInterface](actionFile ActionFile) (ActionSpecInterface,error) {
 	yamlSpec, err := yaml.Marshal(actionFile.Spec)
 	if err != nil {
-		var newSpec T
-		return newSpec, fmt.Errorf("NewSpecFromBuffer Marshal error: %v",err)
+		return nil, fmt.Errorf("NewSpecFromBuffer Marshal error: %v",err)
 	}
 	return NewSpecFromBuffer[T](yamlSpec)
 }
