@@ -9,20 +9,20 @@ import (
 )
 
 func ValidateCmdAction(actSpec yaml_format.ActionSpecInterface, actArgs yaml_format.ActionArgs, actName string) (string, error){
-	cliTestAct, err := actSpec.GenerateTestAction(actName,actArgs)
+	testAct, err := actSpec.GenerateTestAction(actName,actArgs)
 	if err != nil {
 		return "", fmt.Errorf("ValidateCmdAction error: %v",err)
 	}
-	result, err := cliTestAct.TestAction(actName)
+	result, err := testAct.TestAction(actName)
 	if err != nil {
 		return "", fmt.Errorf("ValidateCmdAction error: %v",err)
 	}
 	log.Println(result)
-	cliExecAct, err := actSpec.GenerateExecAction(actName,actArgs)
+	execAct, err := actSpec.GenerateExecAction(actName,actArgs)
 	if err != nil {
 		return "", fmt.Errorf("ValidateCmdAction error: %v",err)
 	}
-	return cliExecAct.ExecAction(actName)
+	return execAct.ExecAction(actName)
 }
 
 func NewValidateCommand() *cobra.Command {

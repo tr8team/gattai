@@ -7,22 +7,13 @@ import (
 	//"log"
 	"time"
 	"bytes"
-	"strconv"
 	"strings"
 	"context"
 	"runtime"
 	//"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
-)
-
-const (
-	CmpEqual string = "equal"
-	CmpNotEqual		= "not_equal"
-	CmpContain		= "contain"
-	CmpNotContain	= "not_contain"
-	CmpIntLessThan  = "int_less_than"
-	CmpIntMoreThan  = "int_more_than"
+	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
 type CLICommand struct {
@@ -31,13 +22,8 @@ type CLICommand struct {
 	CmdArray []string
 }
 
-type Comparison struct {
-	Condition string
-	Value string
-}
-
 type CLIAction struct {
-	Expected Comparison
+	Expected core_action.Comparison
 	Exec []CLICommand
 }
 
@@ -111,43 +97,6 @@ func RunCLICommand(cmds []CLICommand) (string, error) {
 	return result, nil
 }
 
-func ExpectedTest(expected string, conditon string, expected_value string) (bool,error) {
-	result := false
-	switch conditon {
-	case CmpEqual:
-		result = (strings.TrimSpace(expected) == strings.TrimSpace(expected_value))
-	case CmpNotEqual:
-		result = (strings.TrimSpace(expected) != strings.TrimSpace(expected_value))
-	case CmpContain:
-		result = strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(expected_value))
-	case CmpNotContain:
-		result =!strings.Contains(strings.TrimSpace(expected), strings.TrimSpace(expected_value))
-	case CmpIntLessThan:
-		exp_int, err := strconv.Atoi(expected)
-		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected, err)
-		}
-		exp_val, err := strconv.Atoi(expected_value)
-		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected_value, err)
-		}
-		result = (exp_int < exp_val)
-	case CmpIntMoreThan:
-		exp_int, err := strconv.Atoi(expected)
-		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected, err)
-		}
-		exp_val, err := strconv.Atoi(expected_value)
-		if  err != nil {
-			return result, fmt.Errorf("ExpectedTest strconvAtoi error: %s error: %v",expected_value, err)
-		}
-		result = (exp_int > exp_val)
-	default:
-		return result, fmt.Errorf("ExpectedTest condition is not supported error: %s",conditon)
-	}
-	return result, nil
-}
-
 func (cliAct CLIAction) TestAction(action_name string) (string,error)  {
 	result := fmt.Sprintf("%s No Test Found!\n",action_name)
 	if len(cliAct.Exec) > 0 {
@@ -155,7 +104,7 @@ func (cliAct CLIAction) TestAction(action_name string) (string,error)  {
 		if err != nil {
 			return result, fmt.Errorf("%s RunCLICommand error: %v",action_name,err)
 		}
-		passed, err := ExpectedTest(expected,cliAct.Expected.Condition,cliAct.Expected.Value)
+		passed, err := core_action.ExpectedTest(expected,cliAct.Expected.Condition,cliAct.Expected.Value)
 		if err != nil {
 			return result, fmt.Errorf("%s RunCLICommand ExpectedTest error: %v",action_name,err)
 		}

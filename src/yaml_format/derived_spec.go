@@ -29,7 +29,7 @@ func (diSpec * DerivedInterfaceSpec) Derived(action_name string,action_args Acti
 func (diSpec DerivedInterfaceSpec) GenerateTestAction(action_name string, action_args ActionArgs) (core_action.ActionInterface,error)  {
 	if len(diSpec.OverrideTest.Cmds) > 0 {
 		return &core_cli.CLIAction{
-			Expected: core_cli.Comparison {
+			Expected: core_action.Comparison {
 				Condition: diSpec.OverrideTest.Expected.Condition,
 				Value: diSpec.OverrideTest.Expected.Value,
 			},

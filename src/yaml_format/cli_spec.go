@@ -134,7 +134,7 @@ func ExecCmdBlks(cmds []CmdBlock) (string, error) {
 
 func (cliSpec CommandLineInteraceSpec) GenerateTestAction(action_name string, action_args ActionArgs) (core_action.ActionInterface,error)  {
 	return &core_cli.CLIAction{
-		Expected: core_cli.Comparison {
+		Expected: core_action.Comparison {
 			Condition: cliSpec.Test.Expected.Condition,
 			Value: cliSpec.Test.Expected.Value,
 		},
@@ -154,7 +154,7 @@ func (cliSpec CommandLineInteraceSpec) GenerateTestAction(action_name string, ac
 
 func (cliSpec CommandLineInteraceSpec) GenerateExecAction(action_name string, action_args ActionArgs) (core_action.ActionInterface,error)  {
 	return &core_cli.CLIAction{
-		Expected: core_cli.Comparison {
+		Expected: core_action.Comparison {
 			Condition: "",
 			Value: "",
 		},
