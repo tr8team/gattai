@@ -22,9 +22,13 @@ type CLICommand struct {
 	CmdArray []string
 }
 
-type CLIAction struct {
+type CLITest struct {
 	Expected core_action.Comparison
-	Exec []CLICommand
+	Commands []CLICommand
+}
+
+type CLIExec struct {
+	Commands []CLICommand
 }
 
 func BuildCLICommand(cmd CLICommand) string {
@@ -97,26 +101,26 @@ func RunCLICommand(cmds []CLICommand) (string, error) {
 	return result, nil
 }
 
-func (cliAct CLIAction) TestAction(action_name string) (string,error)  {
+func (test CLITest) Run(action_name string) (string,error)  {
 	result := fmt.Sprintf("%s No Test Found!\n",action_name)
-	if len(cliAct.Exec) > 0 {
-		expected,err := RunCLICommand(cliAct.Exec)
+	if len(test.Commands) > 0 {
+		expected,err := RunCLICommand(test.Commands)
 		if err != nil {
-			return result, fmt.Errorf("%s RunCLICommand error: %v",action_name,err)
+			return result, fmt.Errorf("%s TestAction RunCLICommand error: %v",action_name,err)
 		}
-		passed, err := core_action.ExpectedTest(expected,cliAct.Expected.Condition,cliAct.Expected.Value)
+		passed, err := core_action.ExpectedTest(expected,test.Expected.Condition,test.Expected.Value)
 		if err != nil {
-			return result, fmt.Errorf("%s RunCLICommand ExpectedTest error: %v",action_name,err)
+			return result, fmt.Errorf("%s TestAction ExpectedTest error: %v",action_name,err)
 		}
 		if passed {
 			result = fmt.Sprintf("%s Test Passed!\n",action_name)
 		} else {
-			return result, fmt.Errorf("%s RunCLICommand Test Failed! (Expecting: %s, Result: %s)\n",action_name,cliAct.Expected.Value,expected)
+			return result, fmt.Errorf("%s TestAction Test Failed! (Expecting: %s, Result: %s)\n",action_name,test.Expected.Value,expected)
 		}
 	}
 	return result, nil
 }
 
-func (cliAct CLIAction) ExecAction(action_name string) (string,error)  {
-	return RunCLICommand(cliAct.Exec)
+func (exec CLIExec) Run(action_name string) (string,error)  {
+	return RunCLICommand(exec.Commands)
 }

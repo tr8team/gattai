@@ -10,11 +10,11 @@ import (
 )
 
 func RunCmdAction(actSpec yaml_format.ActionSpecInterface, actArgs yaml_format.ActionArgs, actName string) (string, error){
-	execAct, err := actSpec.GenerateExecAction(actName,actArgs)
+	action, err := actSpec.GenerateAction(actName,actArgs)
 	if err != nil {
 		return "", fmt.Errorf("RunCmdAction error: %v",err)
 	}
-	return execAct.ExecAction(actName)
+	return action.Exec.Run(actName)
 }
 
 func NewRunCommand() *cobra.Command {

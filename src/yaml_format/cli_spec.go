@@ -14,7 +14,7 @@ import (
 	//"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
-	//"github.com/tr8team/gattai/src/gattai_core/common"
+	"github.com/tr8team/gattai/src/gattai_core/core_engine"
 	"github.com/tr8team/gattai/src/gattai_core/core_action"
 	"github.com/tr8team/gattai/src/gattai_core/core_cli"
 )
@@ -132,42 +132,37 @@ func ExecCmdBlks(cmds []CmdBlock) (string, error) {
 	return result, nil
 }
 
-func (cliSpec CommandLineInteraceSpec) GenerateTestAction(action_name string, action_args ActionArgs) (core_action.ActionInterface,error)  {
-	return &core_cli.CLIAction{
-		Expected: core_action.Comparison {
-			Condition: cliSpec.Test.Expected.Condition,
-			Value: cliSpec.Test.Expected.Value,
-		},
-		Exec: func(arr []CmdBlock) []core_cli.CLICommand {
-			result := make([]core_cli.CLICommand, len(arr))
-			for i, blk := range arr {
-				result[i] = core_cli.CLICommand {
-					Shell: "",
-					EnvVars: make(map[string]string),
-					CmdArray: blk.GetArray(),
+func (cliSpec CommandLineInteraceSpec) GenerateAction(action_name string, action_args ActionArgs) (*core_engine.Action,error)  {
+	return &core_engine.Action {
+		Test: &core_cli.CLITest {
+			Expected: core_action.Comparison {
+				Condition: cliSpec.Test.Expected.Condition,
+				Value: cliSpec.Test.Expected.Value,
+			},
+			Commands: func(arr []CmdBlock) []core_cli.CLICommand {
+				result := make([]core_cli.CLICommand, len(arr))
+				for i, blk := range arr {
+					result[i] = core_cli.CLICommand {
+						Shell: "",
+						EnvVars: make(map[string]string),
+						CmdArray: blk.GetArray(),
+					}
 				}
-			}
-			return result
-		}(cliSpec.Test.Cmds),
-	}, nil
-}
-
-func (cliSpec CommandLineInteraceSpec) GenerateExecAction(action_name string, action_args ActionArgs) (core_action.ActionInterface,error)  {
-	return &core_cli.CLIAction{
-		Expected: core_action.Comparison {
-			Condition: "",
-			Value: "",
+				return result
+			}(cliSpec.Test.Cmds),
 		},
-		Exec: func(arr []CmdBlock) []core_cli.CLICommand {
-			result := make([]core_cli.CLICommand, len(arr))
-			for i, blk := range arr {
-				result[i] = core_cli.CLICommand {
-					Shell: "",
-					EnvVars: make(map[string]string),
-					CmdArray: blk.GetArray(),
+		Exec: core_cli.CLIExec {
+			Commands: func(arr []CmdBlock) []core_cli.CLICommand {
+				result := make([]core_cli.CLICommand, len(arr))
+				for i, blk := range arr {
+					result[i] = core_cli.CLICommand {
+						Shell: "",
+						EnvVars: make(map[string]string),
+						CmdArray: blk.GetArray(),
+					}
 				}
-			}
-			return result
-		}(cliSpec.Exec.Cmds),
+				return result
+			}(cliSpec.Exec.Cmds),
+		},
 	}, nil
 }
