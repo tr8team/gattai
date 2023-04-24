@@ -24,7 +24,7 @@ func (diSpec * DerivedInterfaceSpec) Derived(action_name string,action_args Acti
 		repopath = output
 	}
 	tmpl_filepath := path.Join(repopath,diSpec.InheritExec.Action) + ".yaml"
-	return RunAction(diSpec.InheritExec,tmpl_filepath,action_args)
+	return GenerateActionSpec(diSpec.InheritExec,tmpl_filepath,action_args)
 }
 
 func (diSpec DerivedInterfaceSpec) GenerateAction(action_name string, action_args ActionArgs) (*core_engine.Action,error)  {
@@ -43,17 +43,7 @@ func (diSpec DerivedInterfaceSpec) GenerateAction(action_name string, action_arg
 					Condition: diSpec.OverrideTest.Expected.Condition,
 					Value: diSpec.OverrideTest.Expected.Value,
 				},
-				Commands: func(arr []CmdBlock) []core_cli.CLICommand {
-					result := make([]core_cli.CLICommand, len(arr))
-					for i, blk := range arr {
-						result[i] = core_cli.CLICommand {
-							Shell: "",
-							EnvVars: make(map[string]string),
-							CmdArray: blk.GetArray(),
-						}
-					}
-					return result
-				}(diSpec.OverrideTest.Cmds),
+				Commands: ConvertToCLICommand("",make(map[string]string),diSpec.OverrideTest.Cmds),
 			},
 			Exec: action.Exec,
 		}, nil

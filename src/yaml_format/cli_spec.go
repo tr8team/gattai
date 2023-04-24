@@ -57,6 +57,18 @@ func (blk CmdBlock) GetArray()[]string{
 	)
 }
 
+func ConvertToCLICommand(shell string, envVars map[string]string, arr []CmdBlock) []core_cli.CLICommand {
+	result := make([]core_cli.CLICommand, len(arr))
+	for i, blk := range arr {
+		result[i] = core_cli.CLICommand {
+			Shell: shell,
+			EnvVars: envVars,
+			CmdArray: blk.GetArray(),
+		}
+	}
+	return result
+}
+
 func ExecCommand(src string) (string, error) {
 	var result bytes.Buffer
 	file, err := syntax.NewParser().Parse(strings.NewReader(src), "")
@@ -139,30 +151,10 @@ func (cliSpec CommandLineInteraceSpec) GenerateAction(action_name string, action
 				Condition: cliSpec.Test.Expected.Condition,
 				Value: cliSpec.Test.Expected.Value,
 			},
-			Commands: func(arr []CmdBlock) []core_cli.CLICommand {
-				result := make([]core_cli.CLICommand, len(arr))
-				for i, blk := range arr {
-					result[i] = core_cli.CLICommand {
-						Shell: "",
-						EnvVars: make(map[string]string),
-						CmdArray: blk.GetArray(),
-					}
-				}
-				return result
-			}(cliSpec.Test.Cmds),
+			Commands: ConvertToCLICommand("",make(map[string]string),cliSpec.Test.Cmds),
 		},
 		Exec: core_cli.CLIExec {
-			Commands: func(arr []CmdBlock) []core_cli.CLICommand {
-				result := make([]core_cli.CLICommand, len(arr))
-				for i, blk := range arr {
-					result[i] = core_cli.CLICommand {
-						Shell: "",
-						EnvVars: make(map[string]string),
-						CmdArray: blk.GetArray(),
-					}
-				}
-				return result
-			}(cliSpec.Exec.Cmds),
+			Commands: ConvertToCLICommand("",make(map[string]string),cliSpec.Exec.Cmds),
 		},
 	}, nil
 }

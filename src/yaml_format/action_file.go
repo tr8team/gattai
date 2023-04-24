@@ -360,40 +360,40 @@ func check_multi_params(target_var map[interface{}]interface{},params Params) (s
 	return result, nil
 }
 
-func RunAction(updated_target Target, tmpl_filepath string, action_args ActionArgs) (ActionSpecInterface,error) {
+func GenerateActionSpec(updated_target Target, tmpl_filepath string, action_args ActionArgs) (ActionSpecInterface,error) {
 	tmpl_filename := path.Base(tmpl_filepath)
 	tmpl, err := template.New(tmpl_filename).Funcs(template.FuncMap{
 		"temp_dir": TplTempDir(action_args.TempDir),
 		"format": TplFormat(),
 	}).ParseFiles(tmpl_filepath)
 	if err != nil {
-		return nil, fmt.Errorf("RunAction template error: %v",err)
+		return nil, fmt.Errorf("GenerateActionSpec template error: %v",err)
 	}
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, updated_target)
 	if err != nil {
-		return nil, fmt.Errorf("RunAction Execute error: %v",err)
+		return nil, fmt.Errorf("GenerateActionSpec Execute error: %v",err)
 	}
 	var actionFile ActionFile;
 
 	err = yaml.Unmarshal(buf.Bytes(), &actionFile)
 	if err != nil {
-		return nil, fmt.Errorf("RunAction Unmarshal error: %s error: %v",buf.String(),err)
+		return nil, fmt.Errorf("GenerateActionSpec Unmarshal error: %s error: %v",buf.String(),err)
 	}
 
 	err = actionFile.CheckVersion()
 	if err != nil {
-		return nil, fmt.Errorf("RunAction CheckVersion error: %v",err)
+		return nil, fmt.Errorf("GenerateActionSpec CheckVersion error: %v",err)
 	}
 
 	err = actionFile.CheckParams(updated_target)
 	if err != nil {
-		return nil, fmt.Errorf("RunAction CheckParams error: %v",err)
+		return nil, fmt.Errorf("GenerateActionSpec CheckParams error: %v",err)
 	}
 
 	if spec, ok := action_args.SpecMap[ActionVerKey(actionFile.Type,actionFile.Version)]; ok {
 		return spec(actionFile)
 	}
 
-	return nil, fmt.Errorf("RunAction action type and version error: %s %s", actionFile.Type,actionFile.Version)
+	return nil, fmt.Errorf("GenerateActionSpec action type and version error: %s %s", actionFile.Type,actionFile.Version)
 }

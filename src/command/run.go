@@ -14,7 +14,7 @@ func RunCmdAction(actSpec yaml_format.ActionSpecInterface, actArgs yaml_format.A
 	if err != nil {
 		return "", fmt.Errorf("RunCmdAction error: %v",err)
 	}
-	return action.Exec.Run(actName)
+	return action.Exec.RunAcion(actName)
 }
 
 func NewRunCommand() *cobra.Command {

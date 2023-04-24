@@ -38,7 +38,7 @@ func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map
 				log.Fatalln("FetchYamlTarget lookUpRepoPath error")
 			}
 			tmpl_filepath := path.Join(repo_path,path.Join(tokens[1:]...)) + ".yaml"
-			act_args := ActionArgs{
+			act_args := ActionArgs {
 				RepoPath: repo_path,
 				TempDir: temp_dir,
 				SpecMap: map[string]ActionFunc{
@@ -46,9 +46,9 @@ func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map
 					ActionVerKey(DerivedSpec, ActionVersion1): NewSpec[DerivedInterfaceSpec],
 				},
 			}
-			out_spec, err := RunAction(updated_target,tmpl_filepath,act_args)
+			out_spec, err := GenerateActionSpec(updated_target,tmpl_filepath,act_args)
 			if err != nil {
-				log.Fatalf("TplFetch RunAction error: %v", err)
+				log.Fatalf("TplFetch GenerateActionSpec error: %v", err)
 			}
 			return cmdFn(out_spec,act_args,updated_target.Action)
 		}
