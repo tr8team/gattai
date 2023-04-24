@@ -101,7 +101,7 @@ func RunCLICommand(cmds []CLICommand) (string, error) {
 	return result, nil
 }
 
-func (test CLITest) RunAcion(action_name string) (string,error)  {
+func (test CLITest) RunAction(action_name string) (string,error)  {
 	result := fmt.Sprintf("%s No Test Found!\n",action_name)
 	if len(test.Commands) > 0 {
 		expected,err := RunCLICommand(test.Commands)
@@ -121,6 +121,6 @@ func (test CLITest) RunAcion(action_name string) (string,error)  {
 	return result, nil
 }
 
-func (exec CLIExec) RunAcion(action_name string) (string,error)  {
+func (exec CLIExec) RunAction(action_name string) (string,error)  {
 	return RunCLICommand(exec.Commands)
 }

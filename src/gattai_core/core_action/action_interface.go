@@ -1,5 +1,5 @@
 package core_action
 
 type ActionInterface interface {
-	RunAcion(string) (string,error)
+	RunAction(string) (string,error)
 }
