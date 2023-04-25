@@ -14,7 +14,6 @@ import (
 	//"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
-	"github.com/tr8team/gattai/src/gattai_core/core_engine"
 	"github.com/tr8team/gattai/src/gattai_core/core_action"
 	"github.com/tr8team/gattai/src/gattai_core/core_cli"
 )
@@ -144,8 +143,8 @@ func ExecCmdBlks(cmds []CmdBlock) (string, error) {
 	return result, nil
 }
 
-func (cliSpec CommandLineInteraceSpec) GenerateAction(action_name string, action_args ActionArgs) (*core_engine.Action,error)  {
-	return &core_engine.Action {
+func (cliSpec CommandLineInteraceSpec) GenerateAction(action_name string, action_args ActionArgs) (*core_action.Action,error)  {
+	return &core_action.Action {
 		Test: &core_cli.CLITest {
 			Expected: core_action.Comparison {
 				Condition: cliSpec.Test.Expected.Condition,

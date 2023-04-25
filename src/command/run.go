@@ -7,13 +7,11 @@ import (
 	"path"
 	"github.com/spf13/cobra"
 	"github.com/tr8team/gattai/src/yaml_format"
+	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
-func RunCmdAction(actSpec yaml_format.ActionSpecInterface, actArgs yaml_format.ActionArgs, actName string) (string, error){
-	action, err := actSpec.GenerateAction(actName,actArgs)
-	if err != nil {
-		return "", fmt.Errorf("RunCmdAction error: %v",err)
-	}
+func RunCmdAction(action *core_action.Action, actName string) (string, error){
+
 	return action.Exec.RunAction(actName)
 }
 

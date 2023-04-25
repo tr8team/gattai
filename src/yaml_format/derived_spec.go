@@ -3,7 +3,6 @@ package yaml_format
 import (
 	"fmt"
 	"path"
-	"github.com/tr8team/gattai/src/gattai_core/core_engine"
 	"github.com/tr8team/gattai/src/gattai_core/core_action"
 	"github.com/tr8team/gattai/src/gattai_core/core_cli"
 )
@@ -27,7 +26,7 @@ func (diSpec * DerivedInterfaceSpec) Derived(action_name string,action_args Acti
 	return GenerateActionSpec(diSpec.InheritExec,tmpl_filepath,action_args)
 }
 
-func (diSpec DerivedInterfaceSpec) GenerateAction(action_name string, action_args ActionArgs) (*core_engine.Action,error)  {
+func (diSpec DerivedInterfaceSpec) GenerateAction(action_name string, action_args ActionArgs) (*core_action.Action,error)  {
 	actSpec, err := diSpec.Derived(action_name,action_args)
 	if err != nil {
 		return nil, fmt.Errorf("%s GenerateAction Derived error: %v",action_name,err)
@@ -37,7 +36,7 @@ func (diSpec DerivedInterfaceSpec) GenerateAction(action_name string, action_arg
 		return nil, fmt.Errorf("%s GenerateAction GenerateAction error: %v",action_name,err)
 	}
 	if len(diSpec.OverrideTest.Cmds) > 0 {
-		return &core_engine.Action{
+		return &core_action.Action{
 			Test: core_cli.CLITest {
 				Expected: core_action.Comparison {
 					Condition: diSpec.OverrideTest.Expected.Condition,

@@ -50,7 +50,11 @@ func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map
 			if err != nil {
 				log.Fatalf("TplFetch GenerateActionSpec error: %v", err)
 			}
-			return cmdFn(out_spec,act_args,updated_target.Action)
+			action, err:= out_spec.GenerateAction(updated_target.Action,act_args)
+			if err != nil {
+				log.Fatalf("TplFetch GenerateAction error: %v", err)
+			}
+			return cmdFn(action,updated_target.Action)
 		}
 	}
 }
