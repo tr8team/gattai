@@ -6,15 +6,19 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
+type CommandFunc func(*core_action.Action,string) (string,error)
+
 type Engine struct {
 	actionlookUp core_action.ActionLookUp
+	commandFunc CommandFunc
 }
 
 type FetchFunc func(*Engine)(string,error)
 
-func MakeEngine() *Engine {
+func MakeEngine(cmdFunc CommandFunc) *Engine {
 	return &Engine {
 		actionlookUp: core_action.MakeActionLookUp(),
+		commandFunc: cmdFunc,
 	}
 }
 
@@ -36,4 +40,8 @@ func (engine *Engine) Fetch(fetchTarget string,fetchFn FetchFunc) string{
 	result := make(chan string)
 	go GoroutineFetch(fetchTarget,engine,fetchFn, result)
 	return <- result
+}
+
+func (engine *Engine) TriggerCommand(action *core_action.Action,action_name string) (string,error) {
+	return engine.commandFunc(action,action_name)
 }

@@ -10,12 +10,12 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/core_engine"
 )
 
-func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string,cmdFn CommandFunc) func(string) core_engine.FetchFunc{
+func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string) func(string) core_engine.FetchFunc{
 	return func(yamlTargetBody string) core_engine.FetchFunc {
 		return func(engine *core_engine.Engine) (string,error) {
 			// if not, parse target to see if target have dependency
 			tmpl, err := template.New("").Funcs(template.FuncMap{
-				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,engine,cmdFn),
+				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,engine),
 			}).Parse(yamlTargetBody)
 			if err != nil {
 				log.Fatalf("FetchYamlTarget template Parse error: %v", err)
@@ -54,19 +54,19 @@ func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map
 			if err != nil {
 				log.Fatalf("TplFetch GenerateAction error: %v", err)
 			}
-			return cmdFn(action,updated_target.Action)
+			return engine.TriggerCommand(action,updated_target.Action)
 		}
 	}
 }
 
-func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, engine *core_engine.Engine,cmdFn CommandFunc) func(Target) string {
+func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string, engine *core_engine.Engine) func(Target) string {
 	return func(target Target) string {
 		// get target generated key
 		yamlTarget, err := yaml.Marshal(target)
 		if err != nil {
 			log.Fatalf("TplFetch Marshal error: %v", err)
 		}
-		return engine.Fetch(string(yamlTarget),FetchYamlTarget(gattai_file, temp_dir, lookUpRepoPath, cmdFn)(string(yamlTarget)))
+		return engine.Fetch(string(yamlTarget),FetchYamlTarget(gattai_file, temp_dir, lookUpRepoPath)(string(yamlTarget)))
 	}
 }
 

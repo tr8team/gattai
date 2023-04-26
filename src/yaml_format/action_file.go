@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"text/template"
 	"gopkg.in/yaml.v2"
-	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
 const (
@@ -52,8 +51,6 @@ type Params struct {
 	Required map[string]*Param `yaml:"required"`
 	Optional map[string]*Param `yaml:"optional"`
 }
-
-type CommandFunc func(*core_action.Action,string) (string,error)
 
 type ActionFunc func(ActionFile)(ActionSpecInterface,error)
 

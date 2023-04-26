@@ -171,14 +171,14 @@ func (gattaiFile GattaiFile) BuildRepoMap(tempDir string) (map[string]string, er
 	return result, nil
 }
 
-func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,cmdFn CommandFunc) (string,error) {
+func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string, tempDir string,cmdFn core_engine.CommandFunc) (string,error) {
 	var result string
 
 	lookUpRepoPath,err := gattaiFile.BuildRepoMap(tempDir)
 	if err != nil {
 		return result, fmt.Errorf("GattaiFile:LookupTargets error: %v",err)
 	}
-	engine := core_engine.MakeEngine()
+	engine := core_engine.MakeEngine(cmdFn)
 
 	switch namespace_id {
 	case AllNamespaces:
@@ -187,14 +187,14 @@ func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string
 			// all namespaces and all targets
 			for _, targets := range gattaiFile.Targets {
 				for _, target := range targets {
-					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine,cmdFn)(target)
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine)(target)
 				}
 			}
 		default:
 			// all namespaces and a single target
 			for _, targets := range gattaiFile.Targets {
 				if target, ok := targets[target_id]; ok {
-					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine,cmdFn)(target)
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine)(target)
 				}
 			}
 		}
@@ -204,12 +204,12 @@ func (gattaiFile GattaiFile) LookupTargets(namespace_id string, target_id string
 			case AllTargets:
 				// a single namespace and all targets
 				for _, target := range targets {
-					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine,cmdFn)(target)
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine)(target)
 				}
 			default:
 				// a single namespace and a single target
 				if target, ok := targets[target_id]; ok {
-					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine,cmdFn)(target)
+					result += TplFetch(gattaiFile,tempDir,lookUpRepoPath,engine)(target)
 				}
 			}
 		}
