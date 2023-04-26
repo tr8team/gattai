@@ -7,12 +7,13 @@ import (
 	"strings"
 	"text/template"
 	"gopkg.in/yaml.v2"
+	"github.com/tr8team/gattai/src/gattai_core/core_action"
 	"github.com/tr8team/gattai/src/gattai_core/core_engine"
 )
 
 func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string) func(string) core_engine.FetchFunc{
 	return func(yamlTargetBody string) core_engine.FetchFunc {
-		return func(engine *core_engine.Engine) (string,error) {
+		return func(engine *core_engine.Engine) (*core_action.Action,error) {
 			// if not, parse target to see if target have dependency
 			tmpl, err := template.New("").Funcs(template.FuncMap{
 				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,engine),
@@ -50,11 +51,7 @@ func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map
 			if err != nil {
 				log.Fatalf("TplFetch GenerateActionSpec error: %v", err)
 			}
-			action, err:= out_spec.GenerateAction(updated_target.Action,act_args)
-			if err != nil {
-				log.Fatalf("TplFetch GenerateAction error: %v", err)
-			}
-			return engine.TriggerCommand(action,updated_target.Action)
+			return out_spec.GenerateAction(updated_target.Action,act_args)
 		}
 	}
 }

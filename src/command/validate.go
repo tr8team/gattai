@@ -9,13 +9,13 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
-func ValidateCmdAction(action *core_action.Action, actName string) (string, error){
-	result, err := action.Test.RunAction(actName)
+func ValidateCmdAction(action *core_action.Action) (string, error){
+	result, err := action.Test.RunAction(action.Name)
 	if err != nil {
 		return "", fmt.Errorf("ValidateCmdAction error: %v",err)
 	}
 	log.Println(result)
-	return action.Exec.RunAction(actName)
+	return action.Exec.RunAction(action.Name)
 }
 
 func NewValidateCommand() *cobra.Command {

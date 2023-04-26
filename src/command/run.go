@@ -10,9 +10,9 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
-func RunCmdAction(action *core_action.Action, actName string) (string, error){
+func RunCmdAction(action *core_action.Action) (string, error){
 
-	return action.Exec.RunAction(actName)
+	return action.Exec.RunAction(action.Name)
 }
 
 func NewRunCommand() *cobra.Command {

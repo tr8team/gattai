@@ -5,6 +5,7 @@ type ActionInterface interface {
 }
 
 type Action struct {
+	Name string
 	Test ActionInterface
 	Exec ActionInterface
 }

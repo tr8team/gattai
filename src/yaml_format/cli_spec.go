@@ -145,6 +145,7 @@ func ExecCmdBlks(cmds []CmdBlock) (string, error) {
 
 func (cliSpec CommandLineInteraceSpec) GenerateAction(action_name string, action_args ActionArgs) (*core_action.Action,error)  {
 	return &core_action.Action {
+		Name: action_name,
 		Test: &core_cli.CLITest {
 			Expected: core_action.Comparison {
 				Condition: cliSpec.Test.Expected.Condition,

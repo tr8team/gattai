@@ -37,6 +37,7 @@ func (diSpec DerivedInterfaceSpec) GenerateAction(action_name string, action_arg
 	}
 	if len(diSpec.OverrideTest.Cmds) > 0 {
 		return &core_action.Action{
+			Name: action_name,
 			Test: core_cli.CLITest {
 				Expected: core_action.Comparison {
 					Condition: diSpec.OverrideTest.Expected.Condition,
