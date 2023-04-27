@@ -13,7 +13,7 @@ import (
 
 func FetchYamlTarget(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string]string) func(string) core_engine.FetchFunc{
 	return func(yamlTargetBody string) core_engine.FetchFunc {
-		return func(engine *core_engine.Engine) (*core_action.Action,error) {
+		return func(targetKey string, engine *core_engine.Engine) (*core_action.Action,error) {
 			// if not, parse target to see if target have dependency
 			tmpl, err := template.New("").Funcs(template.FuncMap{
 				"fetch": TplFetch(gattai_file,temp_dir,lookUpRepoPath,engine),
@@ -63,7 +63,8 @@ func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string
 		if err != nil {
 			log.Fatalf("TplFetch Marshal error: %v", err)
 		}
-		return engine.Fetch(string(yamlTarget),FetchYamlTarget(gattai_file, temp_dir, lookUpRepoPath)(string(yamlTarget)))
+		engine.Store(string(yamlTarget),FetchYamlTarget(gattai_file, temp_dir, lookUpRepoPath)(string(yamlTarget)))
+		return engine.Fetch(string(yamlTarget))
 	}
 }
 

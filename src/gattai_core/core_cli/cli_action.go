@@ -25,10 +25,14 @@ type CLICommand struct {
 type CLITest struct {
 	Expected core_action.Comparison
 	Commands []CLICommand
+	Result string
+	Done bool
 }
 
 type CLIExec struct {
 	Commands []CLICommand
+	Result string
+	Done bool
 }
 
 func BuildCLICommand(cmd CLICommand) string {
@@ -102,25 +106,34 @@ func RunCLICommand(cmds []CLICommand) (string, error) {
 }
 
 func (test CLITest) RunAction(action_name string) (string,error)  {
-	result := fmt.Sprintf("%s No Test Found!\n",action_name)
-	if len(test.Commands) > 0 {
+	if test.Done == false && len(test.Commands) > 0 {
+		test.Result = fmt.Sprintf("%s No Test Found!\n",action_name)
 		expected,err := RunCLICommand(test.Commands)
 		if err != nil {
-			return result, fmt.Errorf("%s TestAction RunCLICommand error: %v",action_name,err)
+			return test.Result, fmt.Errorf("%s TestAction RunCLICommand error: %v",action_name,err)
 		}
 		passed, err := core_action.ExpectedTest(expected,test.Expected.Condition,test.Expected.Value)
 		if err != nil {
-			return result, fmt.Errorf("%s TestAction ExpectedTest error: %v",action_name,err)
+			return test.Result, fmt.Errorf("%s TestAction ExpectedTest error: %v",action_name,err)
 		}
 		if passed {
-			result = fmt.Sprintf("%s Test Passed!\n",action_name)
+			test.Result = fmt.Sprintf("%s Test Passed!\n",action_name)
+			test.Done = true
 		} else {
-			return result, fmt.Errorf("%s TestAction Test Failed! (Expecting: %s, Result: %s)\n",action_name,test.Expected.Value,expected)
+			return test.Result, fmt.Errorf("%s TestAction Test Failed! (Expecting: %s, Result: %s)\n",action_name,test.Expected.Value,expected)
 		}
 	}
-	return result, nil
+	return test.Result, nil
 }
 
 func (exec CLIExec) RunAction(action_name string) (string,error)  {
-	return RunCLICommand(exec.Commands)
+	if exec.Done == false {
+		result,err :=  RunCLICommand(exec.Commands)
+		if err != nil {
+			return exec.Result, fmt.Errorf("%s RunAction RunCLICommand error: %v",action_name,err)
+		}
+		exec.Result = result
+		exec.Done = true
+	}
+	return exec.Result, nil
 }

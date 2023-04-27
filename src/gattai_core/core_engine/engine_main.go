@@ -9,39 +9,35 @@ import (
 type CommandFunc func(*core_action.Action) (string,error)
 
 type Engine struct {
-	actionlookUp core_action.ActionLookUp
+	fetchlookUp FetchLookUp
 	commandFunc CommandFunc
 }
 
-type FetchFunc func(*Engine)(*core_action.Action,error)
+type FetchFunc func(string,*Engine)(*core_action.Action,error)
 
 func MakeEngine(cmdFunc CommandFunc) *Engine {
 	return &Engine {
-		actionlookUp: core_action.MakeActionLookUp(),
+		fetchlookUp: MakeFetchLookUp(),
 		commandFunc: cmdFunc,
 	}
 }
 
-func GoroutineFetch(targetKey string, engine *Engine,fetchFn FetchFunc, output chan string) {
-	result, ok := engine.actionlookUp.Get(targetKey)
-	if !ok {
-		action, err := fetchFn(engine)
-		if err != nil {
-			log.Fatalf("GoroutineFetch fetchFn error: %v", err)
-		}
-		out_result, err := engine.commandFunc(action)
-		if err != nil {
-			log.Fatalf("GoroutineFetch commandFunc error: %v", err)
-		}
-		result = strings.TrimSpace(out_result)
-		engine.actionlookUp.Set(string(targetKey), result)
+func GoroutineFetch(targetKey string, engine *Engine, output chan string) {
+	out_result,err := engine.fetchlookUp.Get(targetKey,engine)
+	if err != nil {
+		log.Fatalf("GoroutineFetch actionlookUp Get error: %v", err)
 	}
+	result := strings.TrimSpace(out_result)
 	output <- result
 }
 
-func (engine *Engine) Fetch(fetchTarget string,fetchFn FetchFunc) string{
+func (engine *Engine) Store(fetchTarget string, fetchFn FetchFunc) {
+	engine.fetchlookUp.Set(fetchTarget,fetchFn)
+}
+
+func (engine *Engine) Fetch(fetchTarget string) string{
 	// check if result for target already exist
 	result := make(chan string)
-	go GoroutineFetch(fetchTarget,engine,fetchFn, result)
+	go GoroutineFetch(fetchTarget,engine, result)
 	return <- result
 }

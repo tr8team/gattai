@@ -185,6 +185,36 @@ vars:
 </tr>
 <tr>
 <td rowspan="4">
+<b>gattai_actions/aws/list_all_secret_by_property.yaml</b>
+
+```yaml
+action: <repo_id>/gattai_actions/aws/list_all_secret_by_property
+vars:
+  filter: '"string"'
+  profile: '"string"'
+  property: '"string"'
+  region: '"string"'
+
+```
+
+</td>
+<td>region<br/><b>(required)</b></td>
+<td>The region where the resource is at</td>
+</tr>
+<tr>
+<td>filter<br/><b>(required)</b></td>
+<td>The secret filter</td>
+</tr>
+<tr>
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
+</tr>
+<tr>
+<td>property<br/><i>(optional)</i></td>
+<td>The property in secret to retrieve</td>
+</tr>
+<tr>
+<td rowspan="4">
 <b>gattai_actions/aws/query/elasticache_replica_grp.yaml</b>
 
 ```yaml
@@ -198,16 +228,16 @@ vars:
 ```
 
 </td>
+<td>query<br/><b>(required)</b></td>
+<td>The elasticache replica grp query</td>
+</tr>
+<tr>
 <td>region<br/><b>(required)</b></td>
 <td>The region where the resource is at</td>
 </tr>
 <tr>
 <td>identifier<br/><b>(required)</b></td>
 <td>The elasticache replica grp identifier</td>
-</tr>
-<tr>
-<td>query<br/><b>(required)</b></td>
-<td>The elasticache replica grp query</td>
 </tr>
 <tr>
 <td>profile<br/><i>(optional)</i></td>
@@ -321,12 +351,12 @@ vars:
 ```
 
 </td>
-<td>name<br/><b>(required)</b></td>
-<td>The kube configmap name</td>
-</tr>
-<tr>
 <td>namespace<br/><b>(required)</b></td>
 <td>The kube configmap namespace</td>
+</tr>
+<tr>
+<td>name<br/><b>(required)</b></td>
+<td>The kube configmap name</td>
 </tr>
 <tr>
 <td>fromFile<br/><i>(optional)</i></td>
@@ -357,16 +387,12 @@ vars:
 ```
 
 </td>
-<td>namespace<br/><b>(required)</b></td>
-<td>The kube secret namespace</td>
-</tr>
-<tr>
 <td>name<br/><b>(required)</b></td>
 <td>The kube secret name</td>
 </tr>
 <tr>
-<td>fromFile<br/><i>(optional)</i></td>
-<td>Create kube secret from file</td>
+<td>namespace<br/><b>(required)</b></td>
+<td>The kube secret namespace</td>
 </tr>
 <tr>
 <td>fromEnvFile<br/><i>(optional)</i></td>
@@ -375,6 +401,10 @@ vars:
 <tr>
 <td>fromLiterals<br/><i>(optional)</i></td>
 <td>Create kube secret from literals</td>
+</tr>
+<tr>
+<td>fromFile<br/><i>(optional)</i></td>
+<td>Create kube secret from file</td>
 </tr>
 <tr>
 <td rowspan="7">
@@ -395,6 +425,10 @@ vars:
 ```
 
 </td>
+<td>name<br/><b>(required)</b></td>
+<td>The content to be save if any</td>
+</tr>
+<tr>
 <td>secretStoreName<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
@@ -412,10 +446,6 @@ vars:
 </tr>
 <tr>
 <td>deletionPolicy<br/><b>(required)</b></td>
-<td>The content to be save if any</td>
-</tr>
-<tr>
-<td>name<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
 </tr>
 <tr>
@@ -537,6 +567,31 @@ vars:
 <tr>
 <td>content<br/><b>(required)</b></td>
 <td>The content to be save if any</td>
+</tr>
+<tr>
+<td rowspan="3">
+<b>gattai_actions/write_multi_secrets.yaml</b>
+
+```yaml
+action: <repo_id>/gattai_actions/write_multi_secrets
+vars:
+  folder: '"string"'
+  profile: '"string"'
+  secret_names: '"string"'
+
+```
+
+</td>
+<td>folder<br/><b>(required)</b></td>
+<td>The folder to save the content into</td>
+</tr>
+<tr>
+<td>secret_names<br/><b>(required)</b></td>
+<td>The secret_names to be read</td>
+</tr>
+<tr>
+<td>profile<br/><i>(optional)</i></td>
+<td>The profile to use for accessing</td>
 </tr>
 <tr>
 <td rowspan="2">

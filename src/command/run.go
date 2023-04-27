@@ -10,11 +10,6 @@ import (
 	"github.com/tr8team/gattai/src/gattai_core/core_action"
 )
 
-func RunCmdAction(action *core_action.Action) (string, error){
-
-	return action.Exec.RunAction(action.Name)
-}
-
 func NewRunCommand() *cobra.Command {
 
 	var enforceTargets bool
@@ -75,7 +70,7 @@ func NewRunCommand() *cobra.Command {
 				defer os.RemoveAll(tempDir) // clean up
 			}
 
-			result,err := gattaiFile.LookupTargets(namespace_id, target_id, tempDir,RunCmdAction)
+			result,err := gattaiFile.LookupTargets(namespace_id, target_id, tempDir,core_action.RunCmdAction)
 			if err != nil {
 				log.Fatalln(err)
 			}
