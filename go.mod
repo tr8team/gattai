@@ -35,3 +35,7 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
+
+replace github.com/tr8team/gattai/core_action github.com/tr8team/gattai/src/gattai_core/core_action
+replace github.com/tr8team/gattai/core_cli github.com/tr8team/gattai/src/gattai_core/core_cli
+replace github.com/tr8team/gattai/core_engine github.com/tr8team/gattai/src/gattai_core/core_engine
