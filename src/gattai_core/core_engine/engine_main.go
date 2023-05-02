@@ -41,3 +41,8 @@ func (engine *Engine) Fetch(fetchTarget string) string{
 	go GoroutineFetch(fetchTarget,engine, result)
 	return <- result
 }
+
+func (engine *Engine) StoreAndFetch(fetchTarget string, fetchFn FetchFunc) string{
+	engine.Store(fetchTarget,fetchFn)
+	return engine.Fetch(fetchTarget)
+}

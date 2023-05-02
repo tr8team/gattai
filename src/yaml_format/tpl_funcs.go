@@ -63,8 +63,7 @@ func TplFetch(gattai_file GattaiFile, temp_dir string, lookUpRepoPath map[string
 		if err != nil {
 			log.Fatalf("TplFetch Marshal error: %v", err)
 		}
-		engine.Store(string(yamlTarget),FetchYamlTarget(gattai_file, temp_dir, lookUpRepoPath)(string(yamlTarget)))
-		return engine.Fetch(string(yamlTarget))
+		return engine.StoreAndFetch(string(yamlTarget),FetchYamlTarget(gattai_file, temp_dir, lookUpRepoPath)(string(yamlTarget)))
 	}
 }
 
