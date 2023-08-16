@@ -35,13 +35,5 @@ spec:
       - command: op
         {{- with .Vars }}
         args:
-          {{- with .identifier }}
-          - item get "{{ . }}"
-          {{- end }}
-          {{- with .label }}
-          - --fields label={{ . }}
-          {{- end }}
-          {{- with .vault }}
-          - --vault {{ . }}
-          {{- end }}
+          - read op://{{ .vault }}/{{ .identifier }}/{{ .label }}
         {{- end }}
